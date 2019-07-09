@@ -77,8 +77,8 @@ cmake ../src
 make -j8
 ```
 
-```bash
 Build Seg_ElasticFusion:
+```bash
 cd offline-run/
 mkdir build
 cd build/
