@@ -1,0 +1,14 @@
+# To train
+python3 balloon.py train --dataset=/home/aass/Hoang-Cuong/Mask_RCNN/datasets/balloon --weights=coco
+
+# Resume training a model that you had trained earlier
+python3 balloon.py train --dataset=/home/aass/Hoang-Cuong/Mask_RCNN/datasets/balloon --weights=last
+
+Note that it will find data in /train and /val folder of dir provided
+
+# Apply color splash to video using the last weights you trained
+python3 balloon.py splash --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/balloon20190515T1505/mask_rcnn_balloon_0003.h5 --image=/home/aass/Hoang-Cuong/Mask_RCNN/samples/balloon/1.jpg
+
+#To inference:
+python3 balloon_inference.py --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/balloon20190515T1505/mask_rcnn_balloon_0003.h5 --image=/home/aass/Hoang-Cuong/Mask_RCNN/samples/balloon/1.jpg
+
