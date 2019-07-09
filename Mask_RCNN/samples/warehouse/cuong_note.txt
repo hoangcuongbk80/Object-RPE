@@ -9,7 +9,6 @@ Note that it will find data in /train and /val folder of dir provided
 
 python3 warehouse_inference.py --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/warehouse20190524T1156/mask_rcnn_warehouse_0060.h5 --image=1.png
 
-
 # For multi images, it will load all images under path/rgb provided and the results are saved to that folder path/instance_labels
 
-python3 warehouse_inference.py --weights=/home/aass/catkin_ws/src/obj_pose_est/Mask_RCNN/logs/mask_rcnn_warehouse_0160.h5 --video=/home/aass/catkin_ws/src/obj_pose_est/data/
+python3 warehouse_inference.py --weights=/home/aass/catkin_ws/src/Object-RPE/Mask_RCNN/logs/mask_rcnn_warehouse_0060.h5 --video=/home/aass/catkin_ws/src/Object-RPE/data/
