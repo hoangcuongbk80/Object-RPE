@@ -1,5 +1,5 @@
 # Seg-ElasticFusion #
-This is an implementation of 3D mapping in [Object-RPE] (https://sites.google.com/view/object-rpe) based on the original version is from [ElasticFusion] (https://github.com/mp3guy/ElasticFusion). 
+This is an implementation of 3D mapping in [Object-RPE](https://sites.google.com/view/object-rpe) based on the original version is from [ElasticFusion](https://github.com/mp3guy/ElasticFusion). 
 
 # 1. What do I need to build it? #
 
