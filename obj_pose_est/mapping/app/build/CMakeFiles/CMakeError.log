@@ -1,0 +1,76 @@
+Determining if the function cblas_dgemm_ exists failed with the following output:
+Change Dir: /home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_24996/fast"
+/usr/bin/make -f CMakeFiles/cmTC_24996.dir/build.make CMakeFiles/cmTC_24996.dir/build
+make[1]: Entering directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_24996.dir/CheckFunctionExists.c.o
+/usr/bin/cc  -DBLAS_USE_F2C  -DCHECK_FUNCTION_EXISTS=cblas_dgemm_   -o CMakeFiles/cmTC_24996.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_24996
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_24996.dir/link.txt --verbose=1
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=cblas_dgemm_    CMakeFiles/cmTC_24996.dir/CheckFunctionExists.c.o  -o cmTC_24996 -rdynamic /usr/lib/libcblas.so /usr/lib/libf77blas.so /usr/lib/libatlas.so 
+CMakeFiles/cmTC_24996.dir/CheckFunctionExists.c.o: In function `main':
+CheckFunctionExists.c:(.text+0x15): undefined reference to `cblas_dgemm_'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_24996.dir/build.make:100: recipe for target 'cmTC_24996' failed
+make[1]: *** [cmTC_24996] Error 1
+make[1]: Leaving directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_24996/fast' failed
+make: *** [cmTC_24996/fast] Error 2
+
+
+Determining if the pthread_create exist failed with the following output:
+Change Dir: /home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_51631/fast"
+/usr/bin/make -f CMakeFiles/cmTC_51631.dir/build.make CMakeFiles/cmTC_51631.dir/build
+make[1]: Entering directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_51631.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -fPIC    -o CMakeFiles/cmTC_51631.dir/CheckSymbolExists.c.o   -c /home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_51631
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_51631.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC     CMakeFiles/cmTC_51631.dir/CheckSymbolExists.c.o  -o cmTC_51631 -rdynamic 
+CMakeFiles/cmTC_51631.dir/CheckSymbolExists.c.o: In function `main':
+CheckSymbolExists.c:(.text+0x1b): undefined reference to `pthread_create'
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_51631.dir/build.make:97: recipe for target 'cmTC_51631' failed
+make[1]: *** [cmTC_51631] Error 1
+make[1]: Leaving directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_51631/fast' failed
+make: *** [cmTC_51631/fast] Error 2
+
+File /home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_920fd/fast"
+/usr/bin/make -f CMakeFiles/cmTC_920fd.dir/build.make CMakeFiles/cmTC_920fd.dir/build
+make[1]: Entering directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_920fd.dir/CheckFunctionExists.c.o
+/usr/bin/cc    -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_920fd.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_920fd
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_920fd.dir/link.txt --verbose=1
+/usr/bin/cc  -fPIC -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_920fd.dir/CheckFunctionExists.c.o  -o cmTC_920fd -rdynamic -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+CMakeFiles/cmTC_920fd.dir/build.make:97: recipe for target 'cmTC_920fd' failed
+make[1]: *** [cmTC_920fd] Error 1
+make[1]: Leaving directory '/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/CMakeTmp'
+Makefile:126: recipe for target 'cmTC_920fd/fast' failed
+make: *** [cmTC_920fd/fast] Error 2
+
+
