@@ -1,5 +1,0 @@
-mkdir build
-cd build/
-cmake ../src
-make -j8
-./mapping -l /home/aass/catkin_ws/src/Object-RPE/data/
