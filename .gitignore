@@ -1,5 +1,5 @@
 # Data files and directories common in repo root
-data/depth/
+/data/depth/
 datasets/
 logs/
 *.h5
