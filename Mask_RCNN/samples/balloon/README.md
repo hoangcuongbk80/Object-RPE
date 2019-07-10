@@ -1,5 +1,5 @@
-## Visualizing instance segmentation for the balloon sample
 (Please star the repo if you find it is helpful. Thanks!)
+## Visualizing instance segmentation for the balloon sample
 
 From the [Releases page](https://github.com/matterport/Mask_RCNN/releases) page:
 1. Download `mask_rcnn_balloon.h5`. Save it in the root directory of the repo (the `mask_rcnn` directory).
