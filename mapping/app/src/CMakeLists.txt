@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6.0)
 
-project(Seg_ElasticFusion)
+project(mapping)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -76,14 +76,14 @@ endif()
 set(CMAKE_CXX_FLAGS ${ADDITIONAL_CMAKE_CXX_FLAGS} "-O3 -msse2 -msse3 -Wall -std=c++11")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -std=c++11")
 
-add_executable(Seg_ElasticFusion 
+add_executable(mapping 
                ${srcs}
                ${tools_srcs}
                ${hdrs}
                ${tools_hdrs}
 )
 
-target_link_libraries(Seg_ElasticFusion
+target_link_libraries(mapping
 					  ${EXTRA_WINDOWS_LIBS}
                       ${ZLIB_LIBRARY}
                       ${Pangolin_LIBRARIES}
@@ -98,7 +98,7 @@ target_link_libraries(Seg_ElasticFusion
 )
 
 
-INSTALL(TARGETS Seg_ElasticFusion
+INSTALL(TARGETS mapping
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

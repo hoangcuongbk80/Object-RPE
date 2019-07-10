@@ -1,4 +1,4 @@
-# Seg-ElasticFusion #
+# 3D Mapping #
 This is an implementation of 3D mapping in [Object-RPE](https://sites.google.com/view/object-rpe) based on the original version is from [ElasticFusion](https://github.com/mp3guy/ElasticFusion). 
 
 # 1. What do I need to build it? #
@@ -42,9 +42,6 @@ When you have all of the dependencies installed, build the Core followed by the 
 
 Firstly install cmake and cuda. Then download and build from source OpenNI2, SuiteSparse. Next download Eigen (no need to build it since it is a header-only library). Then download and build from source Pangolin but pay attention to the following cmake settings. There will be a lot of dependencies where path was not found. That is OK except OPENNI2 and EIGEN3 (those should be set to valid paths). You also need to set MSVC_USE_STATIC_CRT to false in order to correctly link to ElasticFusion projects. Also, you can set BUILD_EXAMPLES to false since we don't need them and some were crashing on my machine.
 
-Finally, build Core and GUI.
-
-
 # 2. Is there an easier way to build it? #
 Yes, if you run the *build.sh* script on a fresh clean install of Ubuntu 14.04, 15.04, or 16.04, enter your password for sudo a few times and wait a few minutes all dependencies will get downloaded and installed and it should build everything correctly. This has not been tested on anything but fresh installs, so I would advise using it with caution if you already have some of the dependencies installed.
 
@@ -78,9 +75,9 @@ cmake ../src
 make -j8
 ```
 
-Build Seg_ElasticFusion:
+Build mapping app:
 ```bash
-cd offline-run/
+cd app/
 mkdir build
 cd build/
 cmake ../src
@@ -89,5 +86,5 @@ make -j8
 
 Run:
 ```bash
-./Seg-ElasticFusion -l /home/aass/catkin_ws/src/Object-RPE/data/
+./mapping -l /home/aass/catkin_ws/src/Object-RPE/data/
 ```
