@@ -1,0 +1,8 @@
+setup.py
+/densefusion/lib/knn/src/vision.cpp
+/densefusion/lib/knn/src/cpu/knn_cpu.cpp
+/densefusion/lib/knn/src/cuda/knn.cu
+knn_pytorch.egg-info/PKG-INFO
+knn_pytorch.egg-info/SOURCES.txt
+knn_pytorch.egg-info/dependency_links.txt
+knn_pytorch.egg-info/top_level.txt
