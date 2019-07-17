@@ -53,30 +53,13 @@ void depthToClould()
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "iliad_object_pose_estimation");
+  ros::init(argc, argv, "object_pose_estimation");
 
   ros::NodeHandle nh_, cloud_n;
   ros::Publisher cloud_pub = cloud_n.advertise<sensor_msgs::PointCloud2> ("myCloud", 1);
   ros::Rate loop_rate(10);
 
-  ros::ServiceClient client = nh_.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
-  obj_pose_est::ObjectRPE srv;
-  srv.request.a = 13;
-  srv.request.b = 3;
-  ROS_INFO("ObjectRPE running");
-  
-  if (client.call(srv))
-  {
-    ROS_INFO("Result: %ld", (long int)srv.response.sum);
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service ObjectRPE");
-    return 1;
-  }
-
- 
-  /* model_to_scene model2scene;
+  model_to_scene model2scene;
   std::string cloud_path = "/home/aass/catkin_ws/src/obj_pose_est/data/object_map.ply";
   std::string detected_class_ids_path = "/home/aass/catkin_ws/src/obj_pose_est/data/class_ids.txt";
   std::string class_list_path = "/home/aass/catkin_ws/src/obj_pose_est/data/dataset/image_sets/classes.txt";
@@ -99,7 +82,7 @@ int main(int argc, char** argv)
     cloud_pub.publish (output);
     ros::spinOnce();
     loop_rate.sleep();
-  } */
+  }
 
   return 0;
 }

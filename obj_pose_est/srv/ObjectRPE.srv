@@ -1,4 +1,6 @@
-int64 a
-int64 b
+string ObjectRPE_dir
+string dataset
+string data_dir
+int64 num_frames
 ---
-int64 sum
+int64 ouput

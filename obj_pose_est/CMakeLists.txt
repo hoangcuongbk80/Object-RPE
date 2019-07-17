@@ -71,10 +71,6 @@ find_package(PCL REQUIRED)
 #   Message1.msg
 #   Message2.msg
 # )
-add_message_files(
-  FILES
-  Num.msg
-)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -167,7 +163,8 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/obj_pose_est_node.cpp)
 
-add_executable(objPose_est_node src/objPose_est_node.cpp)
+add_executable(object_rpe_node src/object_rpe_node.cpp)
+add_executable(obbicp_pred_node src/obbicp_pred_node.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -185,7 +182,8 @@ add_executable(objPose_est_node src/objPose_est_node.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
-target_link_libraries(objPose_est_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
+target_link_libraries(object_rpe_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
+target_link_libraries(obbicp_pred_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
 
 
 #############

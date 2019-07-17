@@ -1,5 +1,5 @@
 # Data files and directories common in repo root
-/data/
+data/
 *.h5
 results/
 temp/
@@ -9,6 +9,10 @@ test/
 # Dense Fusion
 *log.txt
 *.pth
+
+# mapping
+mapping/Core/build
+mapping/app/build
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

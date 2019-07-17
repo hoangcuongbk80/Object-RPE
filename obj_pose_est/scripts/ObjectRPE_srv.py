@@ -4,21 +4,42 @@ from obj_pose_est.srv import *
 import rospy
 import os
 
-def handle_ObjectRPE(req):
-    print "Mask-RCNN running ..."
-    maskrcnn_dir = os.getcwd() + '/src/Object-RPE/Mask_RCNN/samples/warehouse/warehouse_inference.py'
-    maskrcnn_model_dir = os.getcwd() + '/src/Object-RPE/Mask_RCNN/logs/mask_rcnn_warehouse_0060.h5'
-    data_dir = os.getcwd() + '/src/Object-RPE/data/'
-    #aa = os.popen('python3 ' + maskrcnn_dir + ' --weights=' + maskrcnn_model_dir + ' --video=' + data_dir).read()
-    
-    print "3D mapping running ..."
-    mapping_dir = os.getcwd() + '/src/Object-RPE/obj_pose_est/mapping/app/build/mapping'   
-    #aa = os.popen(mapping_dir + ' -l /home/aass/catkin_ws/src/Object-RPE/data/').read()
+def handle_ObjectRPE(req):    
 
+    #--------------------------Start DenseFusion---------------------------
+    print "Mask-RCNN running ..."
+
+    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/object_rpe.py') 
+    maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/warehouse/mask_rcnn.h5')
+    num_frames = ' --num_frames=' + str(req.num_frames)
+    data_dir = ' --data=' + req.data_dir
+    aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames).read()
+
+    #--------------------------End DenseFusion---------------------------
+
+    print "3D mapping running ..."
+    executed_file = os.path.join(req.ObjectRPE_dir, 'obj_pose_est/mapping/app/build/mapping')
+    data_dir = ' -l ' + req.data_dir + '/'
+    num_frames = ' -num_frames ' + str(req.num_frames)
+    aa = os.popen(executed_file + data_dir + num_frames).read()
+ 
+    #--------------------------Start DenseFusion---------------------------
     print("DenseFusion running ...")
-    densefusion_dir = os.getcwd() + '/src/Object-RPE/DenseFusion/experiments/scripts/'   
-    aa = os.popen('sh ' + densefusion_dir + 'inference_warehouse.sh').read()
-    return ObjectRPEResponse(req.a + req.b)
+
+    densefusion_dir = req.ObjectRPE_dir + '/DenseFusion' 
+    executed_file = ' ./tools/inference_warehouse.py'  
+
+    dataset_root = ' --dataset_root ' + req.data_dir + '/dataset/warehouse'
+    saved_root = ' --saved_root ' + req.data_dir
+    pose_model = ' --model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_model.pth')
+    pose_refine_model = ' --refine_model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_refine_model.pth')
+    num_frames = ' --num_frames ' + str(req.num_frames)
+
+    os.chdir(densefusion_dir)
+    aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
+    #--------------------------End DenseFusion---------------------------
+    
+    return 1;
 
 def ObjectRPE_server():
     rospy.init_node('ObjectRPE_server')

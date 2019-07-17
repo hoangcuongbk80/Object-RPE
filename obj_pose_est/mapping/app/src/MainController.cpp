@@ -32,6 +32,8 @@ MainController::MainController(int argc, char * argv[])
    resetButton(false),
    resizeStream(0)
 {
+    Parse::get().arg(argc, argv, "-num_frames", img_num);
+
     std::string empty;
     iclnuim = Parse::get().arg(argc, argv, "-icl", empty) > -1;
 
