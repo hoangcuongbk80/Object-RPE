@@ -1,6 +1,5 @@
 # Data files and directories common in repo root
 /data/
-logs/
 *.h5
 results/
 temp/
