@@ -20,7 +20,7 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 import torch.nn.functional as F
 from torch.autograd import Variable
-from datasets.ycb.dataset import PoseDataset
+#from datasets.ycb.dataset import PoseDataset
 from lib.network import PoseNet, PoseRefineNet
 from lib.transformations import euler_matrix, quaternion_matrix, quaternion_from_matrix
 
@@ -29,8 +29,11 @@ import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_root', type=str, default = '', help='dataset root dir')
+parser.add_argument('--saved_root', type=str, default = '', help='saved result root dir')
 parser.add_argument('--model', type=str, default = '',  help='resume PoseNet model')
 parser.add_argument('--refine_model', type=str, default = '',  help='resume PoseRefineNet model')
+parser.add_argument('--num_frames', type=int, default = 100,  help='number of frames')
+
 opt = parser.parse_args()
 
 norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -49,7 +52,7 @@ num_points = 1000
 num_points_mesh = 500
 iteration = 2
 bs = 1
-dataset_config_dir = 'datasets/warehouse/dataset_config'
+dataset_config_dir = opt.dataset_root + '/image_sets'
 
 def get_bbox(label):
     rows = np.any(label, axis=1)
@@ -124,7 +127,9 @@ while 1:
     class_id += 1
 
 detected_classIDs = []
-detected_idList = open('/home/aass/catkin_ws/src/obj_pose_est/data/class_ids.txt')
+#detected_idList = open('/home/aass/catkin_ws/src/Object-RPE/data/class_ids.txt')
+detected_idList = open('{0}/class_ids.txt'.format(opt.saved_root))
+
 while 1:
     id_str = detected_idList.readline()
     if not id_str:
@@ -132,11 +137,12 @@ while 1:
     detected_classIDs.append(int(id_str))
 print(detected_classIDs)
 
-data_path = '/home/aass/catkin_ws/src/obj_pose_est/data/'
-f = open("/home/aass/catkin_ws/src/ros_tools/data/DenseFusion_Poses.txt" , 'w')
+data_path = opt.saved_root + '/'
+saved_file = opt.saved_root + '/DenseFusion_Poses.txt'
+f = open(saved_file , 'w')
 
-for now in range(1, 101):
-    num = 1000000 + now
+for now in range(0, opt.num_frames):
+    num = 1000001 + now
     str_num = str(num)[1:]
     f.write(str_num)
     f.write("\n")

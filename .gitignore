@@ -1,11 +1,15 @@
 # Data files and directories common in repo root
 /data/
 logs/
-*.pth
 *.h5
 results/
 temp/
 test/
+
+
+# Dense Fusion
+*log.txt
+*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
