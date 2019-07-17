@@ -1,3 +1,6 @@
+# Data files and directories common in repo root
+data/
+
 ## Dense Fusion
 *log.txt
 *.pth
@@ -7,7 +10,6 @@ mapping/Core/build
 mapping/app/build
 
 ## MaskRCNN
-# Data files and directories common in repo root
 *.h5
 results/
 
