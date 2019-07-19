@@ -1,0 +1,13 @@
+pallet_free
+half_pallet_free
+pallet_occluded
+half_pallet_occluded
+jacky
+frasvaf
+onos
+pauluns
+risi_frutti
+skansk
+sotstark
+tomatpure
+small_jacky

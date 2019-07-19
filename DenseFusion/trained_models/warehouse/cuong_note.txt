@@ -1,0 +1,6 @@
+git checkout branch Pytorch-1.0 
+
+# Error: AttributeError: module 'lib.knn.knn_pytorch' has no attribute 'knn'
+Solution: rebuild and unzip egg ile then copy *so file and knn_pytorch.py to /densefusion/lib/knn
+root@cfde89f97b76:/densefusion/lib/knn# python setup.py install
+root@cfde89f97b76:/densefusion/lib/knn/dist# unzip knn_pytorch-0.1-py3.5-linux-x86_64.egg 
