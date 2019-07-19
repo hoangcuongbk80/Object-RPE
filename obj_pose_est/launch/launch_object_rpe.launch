@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="object_pose_estimation" pkg="obj_pose_est" type="object_rpe_node" cwd="node">
+  <param name="ObjectRPE_dir" value="/home/aass/catkin_ws/src/Object-RPE"/>  
+  <param name="dataset" value="Warehouse"/> <!-- YCB-Video or Warehouse -->  
+  <param name="data_dir" value="/home/aass/catkin_ws/src/Object-RPE/data"/>
+  <param name="num_frames" value="10"/>
+  <param name="call_service" value="true"/>
+  </node>
+</launch>
