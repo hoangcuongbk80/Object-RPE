@@ -164,6 +164,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/obj_pose_est_node.cpp)
 
 add_executable(object_rpe_node src/object_rpe_node.cpp)
+add_executable(object_rpe_cam_node src/object_rpe_cam.cpp)
 add_executable(obbicp_pred_node src/obbicp_pred_node.cpp)
 
 
@@ -183,6 +184,7 @@ add_executable(obbicp_pred_node src/obbicp_pred_node.cpp)
 # )
 
 target_link_libraries(object_rpe_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
+target_link_libraries(object_rpe_cam_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
 target_link_libraries(obbicp_pred_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PROJECT_NAME} ${PCL_LIBRARIES})
 
 

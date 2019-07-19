@@ -6,8 +6,8 @@ data/
 *.pth
 
 ## mapping
-mapping/Core/build
-mapping/app/build
+mapping/Core/build/
+mapping/app/build/
 
 ## MaskRCNN
 *.h5

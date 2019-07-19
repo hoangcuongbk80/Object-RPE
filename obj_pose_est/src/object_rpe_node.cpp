@@ -268,10 +268,18 @@ void draw_OBBs()
 
 }
 
-void depthToClould()
+bool depthToClould()
 {
   depth_img = cv::imread(depth_path, -1);
   rgb_img = cv::imread(rgb_path, -1);
+
+  if(!rgb_img.data || !depth_img.data)
+  {
+      if(!rgb_img.data) std::cerr << "Cannot read image from " << rgb_path << "\n"; 
+      else std::cerr << "Cannot read image from " << depth_path << "\n";
+      return false;
+  }
+
 
   cv::imshow("rgb", rgb_img);
   cv::waitKey(300);
@@ -293,6 +301,7 @@ void depthToClould()
          scene_cloud->push_back(point);
         }
     }
+    return true;
 }
 
 void colorMap(int i, pcl::PointXYZRGB &point)
@@ -425,35 +434,40 @@ int main(int argc, char** argv)
 
   std::string dataset, ObjectRPE_dir, data_dir; 
   int num_frames;
+  bool call_service;
 
   n_ = ros::NodeHandle("~");
   n_.getParam("ObjectRPE_dir", ObjectRPE_dir);
   n_.getParam("dataset", dataset);
   n_.getParam("data_dir", data_dir);
   n_.getParam("num_frames", num_frames);  
+  n_.getParam("call_service", call_service);  
 
   getCalibrationParas(dataset);
 
   //-----------------------Call service for MaskRCNN and DenseFusion---------------------------
 
-  ros::ServiceClient client = nh_.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
-  obj_pose_est::ObjectRPE srv;
-
-  srv.request.ObjectRPE_dir = ObjectRPE_dir;
-  srv.request.dataset = dataset;
-  srv.request.data_dir = data_dir;
-  srv.request.num_frames = num_frames;
-
-  ROS_INFO("ObjectRPE running");
-  
-  if (client.call(srv))
+  if(call_service)
   {
-    ROS_INFO("Result: %ld", (long int)srv.response.ouput);
-  }
-  else
-  {
-    ROS_ERROR("Failed to call service ObjectRPE");
-    return 1;
+    ros::ServiceClient client = nh_.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
+    obj_pose_est::ObjectRPE srv;
+
+    srv.request.ObjectRPE_dir = ObjectRPE_dir;
+    srv.request.dataset = dataset;
+    srv.request.data_dir = data_dir;
+    srv.request.num_frames = num_frames;
+
+    ROS_INFO("ObjectRPE running");
+    
+    if (client.call(srv))
+    {
+      ROS_INFO("Result: %ld", (long int)srv.response.ouput);
+    }
+    else
+    {
+      ROS_ERROR("Failed to call service ObjectRPE");
+      return 1;
+    }
   }
  
   //-----------------------------------Process predictions-------------------------------------
@@ -493,6 +507,7 @@ int main(int argc, char** argv)
     model_paths.clear();
     transforms.clear();
     OBB_names.clear();
+    object_names.clear();
 
     if (posefile.is_open())                     
     {
@@ -505,11 +520,11 @@ int main(int argc, char** argv)
         }
         depth_path = data_dir + "/depth/" + line + "-depth.png";
         rgb_path = data_dir + "/rgb/" + line + "-color.png";            
-        std::cerr << rgb_path << "\n";
+        std::cerr << line <<  endl;     
+
         while(true)
         {
           getline (posefile, line);
-          std::cerr << line <<  endl;          
           if(line.length() == 6 | line=="") break;
           int cls_index = std::stoi(line) - 1;
           std::string model_path = model_dir + "/" + full_items[cls_index] + "/points.ply";
@@ -527,10 +542,18 @@ int main(int argc, char** argv)
       std::cerr << "Unable to open file";
       exit(0);
     }
-  
-    loadModels();
-    depthToClould();
-    draw_OBBs();
+    if(model_paths.size())
+    {
+      loadModels();
+      if(!depthToClould()) continue ;
+    }
+    if(posefile.eof())
+    {
+      posefile.clear();
+      posefile.seekg(0, ios::beg);
+      firstLine = true;
+    }
+    //draw_OBBs();
 
     *pub_cloud += *scene_cloud;
     pub_cloud->header.frame_id = "camera_depth_optical_frame";  
