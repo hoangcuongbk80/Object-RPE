@@ -1,18 +1,13 @@
-# Data files and directories common in repo root
+# Data files and directories common
 data/
-build/
-
-## Dense Fusion
+logs/
+results/
+temp/
+test/
 *log.txt
 *.pth
-
-## mapping
-mapping/Core/build/
-mapping/app/build/
-
-## MaskRCNN
 *.h5
-results/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -22,20 +17,21 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-Mask_RCNN/build/
+build/
 develop-eggs/
-Mask_RCNN/dist/
+dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
 var/
 wheels/
-# *.egg-info/
+*.egg-info/
 .installed.cfg
-# *.egg
+*.egg
 
 # Installer logs
 pip-log.txt

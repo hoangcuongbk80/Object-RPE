@@ -145,19 +145,24 @@ def detect_and_get_masks(model, data_path, num_frames):
         str_num = str(num)[1:]
         rgb_addr = "rgb/" + str_num + "-color.png"
         rgb_addr = os.path.join(data_path, rgb_addr)
-        depth_addr = data_path + "/depth/" + str_num + "-depth.png"
-        depth_addr = os.path.join(data_path, depth_addr)            
+        depth_addr = "depth/" + str_num + "-depth.png"
+        depth_addr = os.path.join(data_path, depth_addr)         
+
+        if os.path.isfile(rgb_addr) == False: 
+            continue;
+        if os.path.isfile(depth_addr) == False: 
+            continue;
 
         # Read image
         image = skimage.io.imread(rgb_addr)
-        depth = skimage.io.imread(depth_addr) 
+        depth = skimage.io.imread(depth_addr)
         
         # Detect objects
         cur_detect = model.detect([image], verbose=1)[0]
         if assign_first_pre_detect and cur_detect['masks'].shape[-1] > 0:
             assign_first_pre_detect = False
             pre_detect = cur_detect
-            file_dir = data_path + 'class_ids.txt' 
+            file_dir = os.path.join(data_path, 'class_ids.txt') 
             with open(file_dir, 'w') as the_file:
                 for j in range (cur_detect['class_ids'].shape[0]):
                     the_file.write(str(cur_detect['class_ids'][j]))

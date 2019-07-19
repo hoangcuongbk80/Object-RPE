@@ -146,10 +146,17 @@ for now in range(0, opt.num_frames):
     str_num = str(num)[1:]
     f.write(str_num)
     f.write("\n")
-    
+
     rgb_addr = data_path + "rgb/" + str_num + "-color.png"
     depth_addr = data_path + "depth/" + str_num + "-depth.png"
     mask_addr = data_path + "mask/" + str_num + ".png"
+
+    if os.path.isfile(rgb_addr) == False: 
+            continue;
+    if os.path.isfile(depth_addr) == False: 
+            continue;
+    if os.path.isfile(mask_addr) == False: 
+            continue;
 
     img = Image.open(rgb_addr)
     depth = np.array(Image.open(depth_addr))
