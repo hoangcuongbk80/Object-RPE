@@ -1,5 +1,5 @@
 # Object-RPE
-This is an implementation of [Object-RPE](https://sites.google.com/view/object-rpe)...
+This is an implementation of [Object-RPE](https://sites.google.com/view/object-rpe)
 
 ## Installation and compile the source
 
