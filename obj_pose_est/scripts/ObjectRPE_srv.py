@@ -26,7 +26,7 @@ def handle_ObjectRPE(req):
     executed_file = os.path.join(req.ObjectRPE_dir, 'obj_pose_est/mapping/app/build/mapping')
     data_dir = ' -l ' + req.data_dir + '/'
     num_frames = ' -num_frames ' + str(req.num_frames)
-    #aa = os.popen(executed_file + data_dir + num_frames).read()
+    aa = os.popen(executed_file + data_dir + num_frames).read()
 
     #--------------------------Start DenseFusion---------------------------
     print("DenseFusion running ...")
