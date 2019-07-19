@@ -41,7 +41,7 @@ def handle_ObjectRPE(req):
     num_frames = ' --num_frames ' + str(req.num_frames)
 
     os.chdir(densefusion_dir)
-    #aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
+    aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
     #--------------------------End DenseFusion---------------------------
     
     return 1;
