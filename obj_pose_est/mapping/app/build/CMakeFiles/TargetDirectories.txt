@@ -1,7 +1,0 @@
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/rebuild_cache.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/install.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/list_install_components.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/mapping.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/install/strip.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/install/local.dir
-/home/aass/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app/build/CMakeFiles/edit_cache.dir
