@@ -11,77 +11,38 @@ def handle_ObjectRPE(req):
     os.system('rm -r ' + mask_dir)
     os.system('rm -r ' + mask_color_dir)
 
-    if(req.dataset == "Wareshoue")
-    {
-        #--------------------------Start DenseFusion---------------------------
-        print "Mask-RCNN running ..."
+    #--------------------------Start DenseFusion---------------------------
+    print "Mask-RCNN running ..."
 
-        executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/object_rpe.py') 
-        maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/warehouse/mask_rcnn.h5')
-        num_frames = ' --num_frames=' + str(req.num_frames)
-        data_dir = ' --data=' + req.data_dir
-        aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames).read()
+    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/object_rpe.py') 
+    maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/warehouse/mask_rcnn.h5')
+    num_frames = ' --num_frames=' + str(req.num_frames)
+    data_dir = ' --data=' + req.data_dir
+    aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames).read()
 
-        #--------------------------End DenseFusion---------------------------
+    #--------------------------End DenseFusion---------------------------
 
-        print "3D mapping running ..."
-        executed_file = os.path.join(req.ObjectRPE_dir, 'obj_pose_est/mapping/app/build/mapping')
-        data_dir = ' -l ' + req.data_dir + '/'
-        num_frames = ' -num_frames ' + str(req.num_frames)
-        aa = os.popen(executed_file + data_dir + num_frames).read()
-    
-        #--------------------------Start DenseFusion---------------------------
-        print("DenseFusion running ...")
+    print "3D mapping running ..."
+    executed_file = os.path.join(req.ObjectRPE_dir, 'obj_pose_est/mapping/app/build/mapping')
+    data_dir = ' -l ' + req.data_dir + '/'
+    num_frames = ' -num_frames ' + str(req.num_frames)
+    #aa = os.popen(executed_file + data_dir + num_frames).read()
 
-        densefusion_dir = req.ObjectRPE_dir + '/DenseFusion' 
-        executed_file = ' ./tools/inference_warehouse.py'  
+    #--------------------------Start DenseFusion---------------------------
+    print("DenseFusion running ...")
 
-        dataset_root = ' --dataset_root ' + req.data_dir + '/dataset/warehouse'
-        saved_root = ' --saved_root ' + req.data_dir
-        pose_model = ' --model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_model.pth')
-        pose_refine_model = ' --refine_model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_refine_model.pth')
-        num_frames = ' --num_frames ' + str(req.num_frames)
+    densefusion_dir = req.ObjectRPE_dir + '/DenseFusion' 
+    executed_file = ' ./tools/inference_warehouse.py'  
 
-        os.chdir(densefusion_dir)
-        aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
-        #--------------------------End DenseFusion---------------------------
-    }
-    
-    if(req.dataset == "YCB-Video")
-    {
-        #--------------------------Start DenseFusion---------------------------
-        print "Mask-RCNN running ..."
+    dataset_root = ' --dataset_root ' + req.data_dir + '/dataset/warehouse'
+    saved_root = ' --saved_root ' + req.data_dir
+    pose_model = ' --model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_model.pth')
+    pose_refine_model = ' --refine_model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_refine_model.pth')
+    num_frames = ' --num_frames ' + str(req.num_frames)
 
-        executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/ycb/object_rpe.py') 
-        maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/ycb/mask_rcnn.h5')
-        num_frames = ' --num_frames=' + str(req.num_frames)
-        data_dir = ' --data=' + req.data_dir
-        aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames).read()
-
-        #--------------------------End DenseFusion---------------------------
-
-        print "3D mapping running ..."
-        executed_file = os.path.join(req.ObjectRPE_dir, 'obj_pose_est/mapping/app/build/mapping')
-        data_dir = ' -l ' + req.data_dir + '/'
-        num_frames = ' -num_frames ' + str(req.num_frames)
-        aa = os.popen(executed_file + data_dir + num_frames).read()
-    
-        #--------------------------Start DenseFusion---------------------------
-        print("DenseFusion running ...")
-
-        densefusion_dir = req.ObjectRPE_dir + '/DenseFusion' 
-        executed_file = ' ./tools/inference_ycb.py'  
-
-        dataset_root = ' --dataset_root ' + req.data_dir + '/dataset/ycb'
-        saved_root = ' --saved_root ' + req.data_dir
-        pose_model = ' --model ' + os.path.join(req.data_dir, 'trained_models/ycb/pose_model.pth')
-        pose_refine_model = ' --refine_model ' + os.path.join(req.data_dir, 'trained_models/ycb/pose_refine_model.pth')
-        num_frames = ' --num_frames ' + str(req.num_frames)
-
-        os.chdir(densefusion_dir)
-        aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
-        #--------------------------End DenseFusion---------------------------
-    }
+    os.chdir(densefusion_dir)
+    #aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
+    #--------------------------End DenseFusion---------------------------
     
     return 1;
 
