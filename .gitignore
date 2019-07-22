@@ -1,7 +1,7 @@
 # Data files and directories common
 data/
-mapping/app/build/
-mapping/Core/build/
+build/
+dist/
 *log.txt
 *.pth
 *.h5
