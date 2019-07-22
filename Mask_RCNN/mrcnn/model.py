@@ -2489,7 +2489,6 @@ class MaskRCNN():
         scores: [N] float probability scores for the class IDs
         masks: [H, W, N] instance binary masks
         """
-        print 'cuong1'
         
         assert self.mode == "inference", "Create model in inference mode."
         assert len(
@@ -2525,7 +2524,6 @@ class MaskRCNN():
             self.keras_model.predict([molded_images, image_metas, anchors], verbose=0)
         # Process detections
         results = []
-        print 'cuong1' 
         for i, image in enumerate(images):
             print('cuong')
             print(detections[i])
