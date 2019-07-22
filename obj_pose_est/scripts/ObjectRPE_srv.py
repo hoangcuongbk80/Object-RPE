@@ -5,8 +5,8 @@ import rospy
 import os
 
 def handle_ObjectRPE(req):
-    mask_dir = req.data_dir + '/mask/*.png'
-    mask_color_dir = req.data_dir + '/mask-color/*.png'
+    mask_dir = req.data_dir + '/mask/*'
+    mask_color_dir = req.data_dir + '/mask-color/*'
 
     os.system('rm -r ' + mask_dir)
     os.system('rm -r ' + mask_color_dir)
@@ -14,7 +14,7 @@ def handle_ObjectRPE(req):
     #--------------------------Start DenseFusion---------------------------
     print "Mask-RCNN running ..."
 
-    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/object_rpe.py') 
+    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/inference.py') 
     maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/warehouse/mask_rcnn.h5')
     num_frames = ' --num_frames=' + str(req.num_frames)
     data_dir = ' --data=' + req.data_dir

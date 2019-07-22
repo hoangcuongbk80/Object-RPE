@@ -88,7 +88,6 @@ class MainController
         int framesToSkip;
         bool streaming;
         bool resetButton;
-        bool registration, data_asso;
 
         std::vector<Eigen::Matrix4f> trajectory;
 

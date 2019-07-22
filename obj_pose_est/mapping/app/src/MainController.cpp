@@ -27,8 +27,6 @@ MainController::MainController(int argc, char * argv[])
    framesToSkip(0),
    img_count(0),
    img_num(100),
-   registration(true),
-   data_asso(false),
    resetButton(false),
    resizeStream(0)
 {
@@ -231,7 +229,7 @@ void MainController::launch()
 
 void MainController::run()
 {
-    cv::Mat rgb_img, depth_img, mask_img;
+    cv::Mat rgb_img, depth_img;
 
     while(!pangolin::ShouldQuit() && img_count <= img_num  && !(eFusion->getTick() == end && quiet))
     {
@@ -242,34 +240,20 @@ void MainController::run()
 
         std::string rgb_dir = data_dir + "rgb/" + index_str.substr(1,6) + "-color.png";
         std::string depth_dir = data_dir + "depth/" + index_str.substr(1,6) + "-depth.png";
-        std::string mask_dir = data_dir + "mask-color/" + index_str.substr(1,6) + ".png";
-
-        //std::string saved_mask_dir = "/home/aass/Hoang-Cuong/temp/imags/" + index_str.substr(1,6) + "_color_labels.png";
-        //cv::imwrite(saved_mask_dir, mask_img);
 
         rgb_img = cv::imread(rgb_dir, -1);
-        mask_img = cv::imread(mask_dir, -1);
         depth_img = cv::imread(depth_dir, -1);
-        if(!rgb_img.data || !depth_img.data || !mask_img.data)
+        if(!rgb_img.data || !depth_img.data)
         {
             if(img_count == img_num)
             {
-                if(registration) eFusion->saveFilename = data_dir + "map";  
-                if(data_asso) eFusion->saveFilename = data_dir + "object_map";
+                eFusion->saveFilename = data_dir + "map";  
                 eFusion->savePly();
-                
-                if(!data_asso) 
-                {
-                    resetButton = true;
-                    registration = false;
-                    data_asso = true;
-                }
                 break;
             }
             continue;
         }
         cv::cvtColor(rgb_img, rgb_img, CV_BGR2RGB);
-        cv::cvtColor(mask_img, mask_img, CV_BGR2RGB);
 
         if(!gui->pause->Get() || pangolin::Pushed(*gui->step))
         {
@@ -322,12 +306,9 @@ void MainController::run()
                     *currentPose = groundTruthOdometry->getTransformation(logReader->timestamp);
                 }
 
-                if(registration) 
-                {
-                    trajectory.push_back(eFusion->getCurrPose());
-                    eFusion->processFrame(rgb_img.data, (unsigned short*)depth_img.data, img_count, currentPose, weightMultiplier);
-                }
-                if(data_asso) eFusion->processFrame(mask_img.data, (unsigned short*)depth_img.data, /* logReader->timestamp*/img_count, &trajectory[img_count-1], weightMultiplier);
+                
+                trajectory.push_back(eFusion->getCurrPose());
+                eFusion->processFrame(rgb_img.data, (unsigned short*)depth_img.data, img_count, currentPose, weightMultiplier);
 
                 if(currentPose)
                 {
@@ -432,13 +413,11 @@ void MainController::run()
             }
             else
             {
-                std::cout << "registration: " << img_count << "\n";
-                bool visual = data_asso? true : false;
                 eFusion->getGlobalModel().renderPointCloud(gui->s_cam.GetProjectionModelViewMatrix(),
                                                            eFusion->getConfidenceThreshold(),
                                                            gui->drawUnstable->Get(),
                                                            gui->drawNormals->Get(),
-                                                           /* gui->drawColors->Get()*/visual,
+                                                           gui->drawColors->Get(),
                                                            gui->drawPoints->Get(),
                                                            gui->drawWindow->Get(),
                                                            gui->drawTimes->Get(),
@@ -614,16 +593,8 @@ void MainController::run()
 
         if(img_count == img_num)
         {
-            if(registration) eFusion->saveFilename = data_dir + "map";  
-            if(data_asso) eFusion->saveFilename = data_dir + "object_map";
+            eFusion->saveFilename = data_dir + "map";  
             eFusion->savePly();
-            
-            if(!data_asso) 
-            {
-                resetButton = true;
-                registration = false;
-                data_asso = true;
-            }
             break;
         }
 

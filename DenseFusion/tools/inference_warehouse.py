@@ -20,11 +20,9 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 import torch.nn.functional as F
 from torch.autograd import Variable
-#from datasets.ycb.dataset import PoseDataset
 from lib.network import PoseNet, PoseRefineNet
 from lib.transformations import euler_matrix, quaternion_matrix, quaternion_from_matrix
 
-#cuong
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
@@ -126,30 +124,33 @@ while 1:
     cld[class_id] = np.array(cld[class_id])
     class_id += 1
 
-detected_classIDs = []
-#detected_idList = open('/home/aass/catkin_ws/src/Object-RPE/data/class_ids.txt')
-detected_idList = open('{0}/class_ids.txt'.format(opt.saved_root))
-
-while 1:
-    id_str = detected_idList.readline()
-    if not id_str:
-        break
-    detected_classIDs.append(int(id_str))
-print(detected_classIDs)
-
-data_path = opt.saved_root + '/'
-saved_file = opt.saved_root + '/DenseFusion_Poses.txt'
-f = open(saved_file , 'w')
-
-for now in range(0, opt.num_frames):
+data_path = opt.saved_root
+for now in range(0, opt.num_frames, 10):
     num = 1000001 + now
     str_num = str(num)[1:]
+    
+    file_name = 'mask/' + str_num + '-object_poses.txt' 
+    saved_file = os.path.join(data_path, file_name)
+    f = open(saved_file , 'w')
     f.write(str_num)
     f.write("\n")
 
-    rgb_addr = data_path + "rgb/" + str_num + "-color.png"
-    depth_addr = data_path + "depth/" + str_num + "-depth.png"
-    mask_addr = data_path + "mask/" + str_num + ".png"
+    detected_classIDs = []
+    maskrcnn_result_dir = os.path.join(opt.saved_root, 'mask')
+    detected_idList = open('{0}/{1}-class_ids.txt'.format(maskrcnn_result_dir, str_num))
+    while 1:
+        id_str = detected_idList.readline()
+        if not id_str:
+            break
+        detected_classIDs.append(int(id_str))
+    detected_idList.close()
+
+    file_name = "rgb/" + str_num + "-color.png"
+    rgb_addr = os.path.join(data_path, file_name)
+    file_name = "depth/" + str_num + "-depth.png"
+    depth_addr = os.path.join(data_path, file_name)
+    file_name = "mask/" + str_num + ".png"
+    mask_addr = os.path.join(data_path, file_name)
 
     if os.path.isfile(rgb_addr) == False: 
             continue;
@@ -268,6 +269,9 @@ for now in range(0, opt.num_frames):
             print("PoseCNN Detector Lost {0} at No.{1} keyframe".format(itemid, now))
             my_result_wo_refine.append([0.0 for i in range(7)])
             my_result.append([0.0 for i in range(7)])
+
+    f.close()
+
 ''' 
     plt.subplot(2, 2, 1)
     plt.title("rgb")
@@ -283,4 +287,3 @@ for now in range(0, opt.num_frames):
     plt.imshow(masks)
     plt.show()
  '''
-f.close()
