@@ -132,9 +132,7 @@ for now in range(0, opt.num_frames, 10):
     file_name = 'mask/' + str_num + '-object_poses.txt' 
     saved_file = os.path.join(data_path, file_name)
     f = open(saved_file , 'w')
-    f.write(str_num)
-    f.write("\n")
-
+    
     detected_classIDs = []
     maskrcnn_result_dir = os.path.join(opt.saved_root, 'mask')
     detected_idList = open('{0}/{1}-class_ids.txt'.format(maskrcnn_result_dir, str_num))
@@ -149,7 +147,7 @@ for now in range(0, opt.num_frames, 10):
     rgb_addr = os.path.join(data_path, file_name)
     file_name = "depth/" + str_num + "-depth.png"
     depth_addr = os.path.join(data_path, file_name)
-    file_name = "mask/" + str_num + ".png"
+    file_name = "mask/" + str_num + "-mask.png"
     mask_addr = os.path.join(data_path, file_name)
 
     if os.path.isfile(rgb_addr) == False: 

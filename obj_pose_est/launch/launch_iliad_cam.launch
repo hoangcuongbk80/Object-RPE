@@ -5,7 +5,7 @@
   <param name="ObjectRPE_dir" value="/home/aass/catkin_ws/src/Object-RPE"/>  
   <param name="dataset" value="Warehouse"/> <!-- YCB-Video or Warehouse -->  
   <param name="data_dir" value="/home/aass/catkin_ws/src/Object-RPE/data"/>
-  <param name="num_frames" value="10"/>
+  <param name="num_frames" value="100"/>
   <param name="only_save_frames" value="true"/>
 
   <param name="depth_topsub" value="/camera/depth/image"/>

@@ -25,248 +25,28 @@
 using namespace std;
 using namespace cv;
 
-
-
-pcl::PointCloud<pcl::PointXYZ>::Ptr     OBBs (new pcl::PointCloud<pcl::PointXYZ>);
-std::vector<string>                     OBB_names;
-visualization_msgs::MarkerArray         multiMarker;
-std::vector<string>                     ObjectNameList;
-
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr  scene_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr  pub_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_scene (new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr  pub_one_pred (new pcl::PointCloud<pcl::PointXYZRGB>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr  pub_multi_pred (new pcl::PointCloud<pcl::PointXYZRGB>);
 
 std::string depth_path, rgb_path;
 cv::Mat rgb_img, depth_img;
 double fx, fy, cx, cy, depth_factor;
+double dst_thresh;
 
-std::vector<string> object_names; // names of object detected
 std::vector<string> model_paths; // path to model of object detected
-std::vector<string> full_items; // full list of item names in dataset 
+std::vector<string> full_items; // full list of item names in dataset
 std::vector<Eigen::Matrix4f> transforms;
+Eigen::Matrix4f cam_T;
 
-int OBB_Estimation(pcl::PointCloud<pcl::PointXYZRGB> &cloud)
-{
-    if(!cloud.size())
-    {
-      std::cerr << "cloud is empty!" << "\n";
-      return 0;
-    }
-    pcl::PointCloud<pcl::PointXYZ>::Ptr OBB (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointXYZRGB point;
-    
-    // Compute principal directions
-    Eigen::Vector4f pcaCentroid;
-    pcl::compute3DCentroid(cloud, pcaCentroid);
-    Eigen::Matrix3f covariance;
-    computeCovarianceMatrixNormalized(cloud, pcaCentroid, covariance);
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> eigen_solver(covariance, Eigen::ComputeEigenvectors);
-    Eigen::Matrix3f eigenVectorsPCA = eigen_solver.eigenvectors();
-    eigenVectorsPCA.col(2) = eigenVectorsPCA.col(0).cross(eigenVectorsPCA.col(1));
- 
-    // Transform the original cloud to the origin where the principal components correspond to the axes.
-    Eigen::Matrix4f projectionTransform(Eigen::Matrix4f::Identity());
-    projectionTransform.block<3,3>(0,0) = eigenVectorsPCA.transpose();
-    projectionTransform.block<3,1>(0,3) = -1.f * (projectionTransform.block<3,3>(0,0) * pcaCentroid.head<3>());
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudPointsProjected (new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::transformPointCloud(cloud, *cloudPointsProjected, projectionTransform);
-    // Get the minimum and maximum points of the transformed cloud.
-    pcl::PointXYZRGB minPoint, maxPoint;
-    pcl::getMinMax3D(*cloudPointsProjected, minPoint, maxPoint);
-    
-    float lengthOBB[3];
-    lengthOBB[0] = fabs(maxPoint.x - minPoint.x); //MAX length OBB
-    lengthOBB[1] = fabs(maxPoint.y - minPoint.y); //MID length OBB
-    lengthOBB[2] = fabs(maxPoint.z - minPoint.z); //MIN length OBB
+std::vector<pcl::PointCloud<pcl::PointXYZRGB>> curr_models;
+std::vector<string> curr_objects; // names of object detected in the current image
+std::vector<int> curr_clsIDs; // class ID of object detected in the current image
 
-    pcl::PointCloud<pcl::PointXYZ>::Ptr OBB_Origin(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointXYZ OBB_points;
-    OBB_points.x = -lengthOBB[0] / 2.0; OBB_points.y = -lengthOBB[1] / 2.0; OBB_points.z = -lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points); // Min Point
-    OBB_points.x = -lengthOBB[0] / 2.0; OBB_points.y = lengthOBB[1] / 2.0; OBB_points.z = -lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-    OBB_points.x = -lengthOBB[0] / 2.0; OBB_points.y = lengthOBB[1] / 2.0; OBB_points.z = lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-    OBB_points.x = -lengthOBB[0] / 2.0; OBB_points.y = -lengthOBB[1] / 2.0; OBB_points.z = lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-
-    OBB_points.x = lengthOBB[0] / 2.0; OBB_points.y = lengthOBB[1] / 2.0; OBB_points.z = lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points); //Max point
-    OBB_points.x = lengthOBB[0] / 2.0; OBB_points.y = -lengthOBB[1] / 2.0; OBB_points.z = lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-    OBB_points.x = lengthOBB[0] / 2.0; OBB_points.y = -lengthOBB[1] / 2.0; OBB_points.z = -lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-    OBB_points.x = lengthOBB[0] / 2.0; OBB_points.y = lengthOBB[1] / 2.0; OBB_points.z = -lengthOBB[2] / 2.0;
-    OBB_Origin->push_back(OBB_points);
-
-    pcl::transformPointCloud(*OBB_Origin, *OBB_Origin, projectionTransform.inverse());
-
-    if(lengthOBB[0] < lengthOBB[1])
-    {
-        float buf = lengthOBB[0]; lengthOBB[0] = lengthOBB[1]; lengthOBB[1] = buf;
-    }
-    if(lengthOBB[0] < lengthOBB[2])
-    {
-        float buf = lengthOBB[0]; lengthOBB[0] = lengthOBB[2]; lengthOBB[2] = buf;
-    }
-    if(lengthOBB[1] < lengthOBB[2])
-    {
-        float buf = lengthOBB[1]; lengthOBB[1] = lengthOBB[2]; lengthOBB[2] = buf;
-    }
-    
-    *OBBs += *OBB_Origin;
-    OBB_points.x = lengthOBB[0]; OBB_points.y = lengthOBB[1]; OBB_points.z = lengthOBB[2];
-    OBBs->push_back(OBB_points);
-    std::cerr << "OBB length: " << lengthOBB[0] << " " << lengthOBB[1] << " " << lengthOBB[2] << "\n";
-    return 1;
-}
-
-void draw_OBBs()
-{
-    visualization_msgs::Marker OBB;
-    geometry_msgs::Point p;
-
-    OBB.header.frame_id = "camera_depth_optical_frame";
-    OBB.header.stamp = ros::Time::now();
-    OBB.ns = "OBBs";
-    OBB.id = 0;
-    OBB.type = visualization_msgs::Marker::LINE_LIST;
-    OBB.action = visualization_msgs::Marker::ADD;
-    OBB.pose.position.x = 0;
-    OBB.pose.position.y = 0;
-    OBB.pose.position.z = 0;
-    OBB.pose.orientation.x = 0.0;
-    OBB.pose.orientation.y = 0.0;
-    OBB.pose.orientation.z = 0.0;
-    OBB.pose.orientation.w = 1.0;
-    OBB.scale.x = 0.005; OBB.scale.y = 0.005; OBB.scale.z = 0.005;
-    OBB.color.r = 1.0f; OBB.color.g = 1.0f; OBB.color.b = 1.0f; OBB.color.a = 1.0;
-
-    visualization_msgs::Marker ObjectName;
-    ObjectName.header.frame_id = "camera_depth_optical_frame";
-    ObjectName.header.stamp = ros::Time::now();
-    ObjectName.id = 0;
-    ObjectName.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-    ObjectName.action = visualization_msgs::Marker::ADD;
-    ObjectName.pose.orientation.x = 0.0;
-    ObjectName.pose.orientation.y = 0.0;
-    ObjectName.pose.orientation.z = 0.0;
-    ObjectName.pose.orientation.w = 1.0;
-    ObjectName.scale.x = 0.05; ObjectName.scale.y = 0.05; ObjectName.scale.z = 0.05;
-    ObjectName.color.r = 1.0f; ObjectName.color.g = 1.0f; ObjectName.color.b = 1.0f; ObjectName.color.a = 1.0;
-
-    if(OBBs->size() == 0) 
-    { 
-      OBB.lifetime = ros::Duration();
-      multiMarker.markers.push_back(OBB);
-      if(!ObjectNameList.empty())
-      {
-        for(int i=0; i < ObjectNameList.size(); i++)
-        {
-          ObjectName.ns  = ObjectNameList[i];
-          ObjectName.text = "";
-          ObjectName.lifetime = ros::Duration();
-          multiMarker.markers.push_back(ObjectName);
-        }
-        ObjectNameList.clear();
-      }      
-      return;
-    };
-
-    if(!ObjectNameList.empty())
-      {
-        for(int i=0; i < ObjectNameList.size(); i++)
-        {
-          ObjectName.ns  = ObjectNameList[i];
-          ObjectName.text = "";
-          ObjectName.lifetime = ros::Duration();
-          multiMarker.markers.push_back(ObjectName);
-        }
-      }
-    ObjectNameList.clear();
- 
-    for(int k = 0; k < OBB_names.size(); k++)
-    {
-       int begin = k*9; int stop = begin + 8;
-       for(int i = begin; i < stop; i++)
-       {
-          if(i == begin + 3 || i == begin + 7)
-          {
-             p.x = OBBs->points[i].x;
-             p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-             OBB.points.push_back(p);
-             p.x = OBBs->points[i-3].x;
-             p.y = OBBs->points[i-3].y; p.z = OBBs->points[i-3].z;
-             OBB.points.push_back(p);
-             if(i == begin + 3)
-             {
-                p.x = OBBs->points[i].x;
-                p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-                OBB.points.push_back(p);
-                p.x = OBBs->points[begin + 5].x;
-                p.y = OBBs->points[begin + 5].y; 
-                p.z = OBBs->points[begin + 5].z;
-                OBB.points.push_back(p);
-             }
-             if(i == begin + 7)
-             {
-                p.x = OBBs->points[i].x;
-                p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-                OBB.points.push_back(p);
-                p.x = OBBs->points[begin + 1].x;
-                p.y = OBBs->points[begin + 1].y; 
-                p.z = OBBs->points[begin + 1].z;
-                OBB.points.push_back(p);
-             }
-          }
-          else
-          {
-             p.x = OBBs->points[i].x;
-             p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-             OBB.points.push_back(p);
-             p.x = OBBs->points[i+1].x;
-             p.y = OBBs->points[i+1].y; p.z = OBBs->points[i+1].z;
-             OBB.points.push_back(p);
-             if(i == begin + 0)
-             {
-                p.x = OBBs->points[i].x;
-                p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-                OBB.points.push_back(p);
-                p.x = OBBs->points[begin + 6].x;
-                p.y = OBBs->points[begin + 6].y; 
-                p.z = OBBs->points[begin + 6].z;
-                OBB.points.push_back(p);
-             }
-             if(i == begin + 2)
-             {
-                p.x = OBBs->points[i].x;
-                p.y = OBBs->points[i].y; p.z = OBBs->points[i].z;
-                OBB.points.push_back(p);
-                p.x = OBBs->points[begin + 4].x;
-                p.y = OBBs->points[begin + 4].y; 
-                p.z = OBBs->points[begin + 4].z;
-                OBB.points.push_back(p);
-             }
-          }
-       }
-       
-       ostringstream convert;
-       convert << k;
-       ObjectName.ns = OBB_names[k] + convert.str();
-       ObjectName.pose.position.x = OBBs->points[begin + k].x;
-       ObjectName.pose.position.y = OBBs->points[begin + k].y;
-       ObjectName.pose.position.z = OBBs->points[begin + k].z;
-       ObjectName.color.a = 1.0;
-       ObjectName.text = OBB_names[k];
-       ObjectNameList.push_back(ObjectName.text);
-
-       ObjectName.lifetime = ros::Duration();
-       multiMarker.markers.push_back(ObjectName);
-    }
-
-    OBB.lifetime = ros::Duration();
-    multiMarker.markers.push_back(OBB);
-
-}
+std::vector<pcl::PointCloud<pcl::PointXYZRGB>> global_models;
+std::vector<string> global_objects; // names of object detected in the current image
+std::vector<int> global_clsIDs; // class ID of object detected in the current image
 
 bool depthToClould()
 {
@@ -371,11 +151,41 @@ void colorMap(int i, pcl::PointXYZRGB &point)
   }                   
 }
 
-void loadModels()
+double overlapPortion(const pcl::PointCloud<pcl::PointXYZRGB> &source, 
+                                          const pcl::PointCloud<pcl::PointXYZRGB> &target, 
+                                          const double &max_dist)
+{
+	if (source.size() == 0 || target.size() == 0) return -1;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr target_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr source_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::copyPointCloud(target, *target_cloud);
+	pcl::copyPointCloud(source, *source_cloud);
+	
+	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+	kdtree.setInputCloud(target_cloud);
+	std::vector<int> pointIdxNKNSearch(1);
+	std::vector<float> pointNKNSquaredDistance(1);
+
+	int overlap_Points = 0;
+	for (int i = 0; i < source.size(); ++i)
+	{
+		if (kdtree.nearestKSearch(source_cloud->points[i], 1, pointIdxNKNSearch, pointNKNSquaredDistance) > 0)
+		{
+            if(sqrt(pointNKNSquaredDistance[0]) < max_dist)
+			    overlap_Points++;
+		}
+	}
+
+	//calculating the mean distance
+	double portion = (double) overlap_Points / source.size();
+	return portion;
+}
+
+void processModels()
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr  model_cloud (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr  color_model_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-
+  
   for(int i=0; i < model_paths.size(); i++)
   {
     pcl::io::loadPLYFile<pcl::PointXYZ> (model_paths[i], *model_cloud);
@@ -384,10 +194,55 @@ void loadModels()
     for(int k=0; k < color_model_cloud->size(); k++)
     {
       colorMap(i+1, color_model_cloud->points[k]);
+    }    
+    curr_models.push_back(*color_model_cloud);
+  }
+  
+  if(!curr_models.size()) return;
+  if(!global_models.size())
+  {
+    for(int i=0; i < curr_models.size(); i++)
+    {
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr  transformed_model (new pcl::PointCloud<pcl::PointXYZRGB>);
+      pcl::transformPointCloud(curr_models[i], *transformed_model, cam_T);
+      global_models.push_back(*transformed_model);
+      global_objects.push_back(curr_objects[i]);
+      global_clsIDs.push_back(curr_clsIDs[i]);
     }
-    OBB_Estimation(*color_model_cloud);
-    OBB_names.push_back(object_names[i]);
-    *pub_cloud += *color_model_cloud;
+    return;
+  }
+
+  for(int i=0; i < curr_models.size(); i++)
+  {
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr  transformed_model (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::transformPointCloud(curr_models[i], *transformed_model, cam_T);
+    int numOfGlobalObjects = global_models.size();
+    for(int j=0; j < numOfGlobalObjects; j++)
+    {
+      if(curr_clsIDs[i] == global_clsIDs[j])
+      {
+        double overlap = overlapPortion(*transformed_model, global_models[i], 0.1);
+        if(overlap > 0.1) 
+        {
+          for(int k=0; k < transformed_model->size(); k++)
+          {
+            colorMap(j+1, transformed_model->points[k]);
+          }
+          global_models[j] = *transformed_model;
+        }
+        else //new object
+        {
+          std::cerr << curr_objects[i] << " " << overlap << "\n";
+          for(int k=0; k < transformed_model->size(); k++)
+          {
+            colorMap(global_models.size()+1, transformed_model->points[k]);
+          }
+          global_models.push_back(*transformed_model);
+          global_clsIDs.push_back(curr_clsIDs[i]);
+          global_objects.push_back(curr_objects[i]); 
+        }
+      }
+    }
   }
 }
 
@@ -422,14 +277,31 @@ void extract_transform_from_quaternion(std::string line, Eigen::Matrix4f &T, int
     T.block(0, 0, 3, 3) = q.normalized().toRotationMatrix();
 }
 
+void extract_cam_pose(std::string line)
+{
+	  Eigen::Vector3f trans;
+    float rot_quaternion[4];
+    vector<string> st;
+    boost::trim(line);
+		boost::split(st, line, boost::is_any_of("\t\r "), boost::token_compress_on);
+    trans(0) = std::stof(st[1]); trans(1) = std::stof(st[2]); trans(2) = std::stof(st[3]); //translaton
+    rot_quaternion[0] = std::stof(st[7]); rot_quaternion[1] = std::stof(st[4]); //rotation
+    rot_quaternion[2] = std::stof(st[5]); rot_quaternion[3] = std::stof(st[6]); //rotation
+
+    Eigen::Quaternionf q(rot_quaternion[0], rot_quaternion[1], rot_quaternion[2], rot_quaternion[3]); //w x y z
+    
+    cam_T.setIdentity();
+    cam_T.block(0, 3, 3, 1) = trans;
+    cam_T.block(0, 0, 3, 3) = q.normalized().toRotationMatrix();
+}
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ObjectRPE");
 
-  ros::NodeHandle n_, nh_, cloud_n, obb_n;
-  ros::Publisher cloud_pub = cloud_n.advertise<sensor_msgs::PointCloud2> ("myCloud", 1);
-  ros::Publisher OBBs_pub = obb_n.advertise<visualization_msgs::MarkerArray>( "OBBs", 1);
+  ros::NodeHandle n_, nh_, cloud_n, cloud_mul_n;
+  ros::Publisher cloud_pub_one_pred = cloud_n.advertise<sensor_msgs::PointCloud2> ("one_pred", 1);
+  ros::Publisher cloud_pub_multi_pred = cloud_mul_n.advertise<sensor_msgs::PointCloud2> ("multi_pred", 1);
   ros::Rate loop_rate(10);
 
   std::string dataset, ObjectRPE_dir, data_dir; 
@@ -442,6 +314,7 @@ int main(int argc, char** argv)
   n_.getParam("data_dir", data_dir);
   n_.getParam("num_frames", num_frames);  
   n_.getParam("call_service", call_service);  
+  n_.getParam("dst_thresh", dst_thresh);  
 
   getCalibrationParas(dataset);
 
@@ -473,7 +346,6 @@ int main(int argc, char** argv)
   //-----------------------------------Process predictions-------------------------------------
   
   std::string classes_path = data_dir + "/dataset/warehouse/image_sets/classes.txt";
-  std::string pose_path = data_dir + "/DenseFusion_Poses.txt";
   std::string model_dir = data_dir + "/dataset/warehouse/models";
   pcl::PCLPointCloud2 cloud_filtered;
   sensor_msgs::PointCloud2 output;
@@ -494,47 +366,77 @@ int main(int argc, char** argv)
       exit(0);
     }
   classes_file.close();
-  
-  ifstream posefile (pose_path);    
-  string line;
-  bool firstLine = true;                             
 
+  std::string cam_traject_path = data_dir + "/map.freiburg";
+  ifstream cam_traject_file (cam_traject_path);
+  if(cam_traject_file.fail())
+  {
+    std::cerr << "Cannot read " << cam_traject_path << "n";
+    return 1;
+  }
+
+  int now = 0;
   while (ros::ok())
   {
-    pub_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+    if(now < num_frames) now++;
+    else 
+    {
+      now = 0;
+      pub_multi_pred.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+      cam_traject_file.clear();
+      cam_traject_file.seekg(0, ios::beg);
+      global_models.clear();
+      global_objects.clear();
+      global_clsIDs.clear();
+      std::cerr << "Restart\n";
+      continue;
+    }
+
+    string cam_line;
+    if(!cam_traject_file.eof()) getline (cam_traject_file, cam_line);
+    
+    int num = 1000000 + now;
+    std::string str_num = std::to_string(num).substr(1, 6);
+    std::string pose_path = data_dir + "/mask/" + str_num + "-object_poses.txt";
+
+    ifstream posefile (pose_path);
+    if(posefile.fail()) continue;
+    std::cerr << str_num << "\n";
+    std::cerr << global_models.size() << " " << global_objects.size() << " " << global_clsIDs.size() << "\n";
+
+    pub_one_pred.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pub_multi_pred.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     scene_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
-    OBBs.reset(new pcl::PointCloud<pcl::PointXYZ>);
+    transformed_scene.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     model_paths.clear();
     transforms.clear();
-    OBB_names.clear();
-    object_names.clear();
+    curr_objects.clear();
+    curr_clsIDs.clear();
+    curr_models.clear();
 
-    if (posefile.is_open())                     
+    depth_path = data_dir + "/depth/" + str_num + "-depth.png";
+    rgb_path = data_dir + "/rgb/" + str_num + "-color.png";            
+
+    string line;
+
+    if (posefile.is_open())            
     {
-      if (!posefile.eof())                 
+      while(!posefile.eof())
       {
-        if(firstLine) 
-        {
-          getline (posefile, line);
-          firstLine = false;
-        }
-        depth_path = data_dir + "/depth/" + line + "-depth.png";
-        rgb_path = data_dir + "/rgb/" + line + "-color.png";            
-        std::cerr << line <<  endl;     
+        if(!posefile.eof()) getline (posefile, line);
+        if(line=="") continue;
+        curr_clsIDs.push_back(std::stoi(line));
+        int cls_index = std::stoi(line) - 1;
+        std::string model_path = model_dir + "/" + full_items[cls_index] + "/points.ply";
+        
+        curr_objects.push_back(full_items[cls_index]);
+        model_paths.push_back(model_path);
+        if(!posefile.eof()) getline (posefile, line);
+        if(line=="") continue;
 
-        while(true)
-        {
-          getline (posefile, line);
-          if(line.length() == 6 | line=="") break;
-          int cls_index = std::stoi(line) - 1;
-          std::string model_path = model_dir + "/" + full_items[cls_index] + "/points.ply";
-          object_names.push_back(full_items[cls_index]);
-          model_paths.push_back(model_path);
-          getline (posefile, line);
-          Eigen::Matrix4f T(Eigen::Matrix4f::Identity());
-          extract_transform_from_quaternion(line, T, cls_index);          
-          transforms.push_back(T);
-        }
+        Eigen::Matrix4f T(Eigen::Matrix4f::Identity());
+        extract_transform_from_quaternion(line, T, cls_index);          
+        transforms.push_back(T);
       }
     }
     else 
@@ -544,30 +446,52 @@ int main(int argc, char** argv)
     }
     if(model_paths.size())
     {
-      loadModels();
       if(!depthToClould()) continue ;
+      if(cam_line!="")
+      {
+        extract_cam_pose(cam_line);
+        pcl::transformPointCloud(*scene_cloud, *transformed_scene, cam_T);
+      }
+      else continue;
+      processModels();
     }
-    if(posefile.eof())
+
+    if(cam_line!="")
     {
-      posefile.clear();
-      posefile.seekg(0, ios::beg);
-      firstLine = true;
+      extract_cam_pose(cam_line);
+      pcl::transformPointCloud(*scene_cloud, *transformed_scene, cam_T);
     }
-    //draw_OBBs();
 
-    *pub_cloud += *scene_cloud;
-    pub_cloud->header.frame_id = "camera_depth_optical_frame";  
+    if(curr_models.size())
+    {
+      for(int i=0; i < curr_models.size(); i++)
+        *pub_one_pred += curr_models[i];
+    }
+    if(global_models.size())
+    {
+      for(int i=0; i < global_models.size(); i++)
+        *pub_multi_pred += global_models[i];
+    }
 
-    pcl::toPCLPointCloud2(*pub_cloud, cloud_filtered);
+    *pub_one_pred += *scene_cloud;
+    pub_one_pred->header.frame_id = "camera_depth_optical_frame";  
+
+    *pub_multi_pred += *transformed_scene;
+    pub_multi_pred->header.frame_id = "camera_depth_optical_frame";  
+
+    pcl::toPCLPointCloud2(*pub_one_pred, cloud_filtered);
     pcl_conversions::fromPCL(cloud_filtered, output);
-    cloud_pub.publish (output);
+    cloud_pub_one_pred.publish (output);
 
-    OBBs_pub.publish(multiMarker);
-    
+    pcl::toPCLPointCloud2(*pub_multi_pred, cloud_filtered);
+    pcl_conversions::fromPCL(cloud_filtered, output);
+    cloud_pub_multi_pred.publish (output);
+
     ros::spinOnce();
     loop_rate.sleep();
+    posefile.close();
   }
+  cam_traject_file.close();
 
-  posefile.close();
   return 0;
 }
