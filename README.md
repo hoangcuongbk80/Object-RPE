@@ -26,7 +26,7 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
    then save results (mask and accuracy.txt file) into .../Object-RPE/data/mask
 
-   <img src="figs/ex_rgb.png" width="350" /><img src="figs/ex_mask.png" width="350" />
+   <img src="figs/ex_rgb.png" width="290" /><img src="figs/ex_mask.png" width="290" />
    &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(a) RGB image &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(b) Mask image
 3. To test 3D mapping module:
    ```bash
