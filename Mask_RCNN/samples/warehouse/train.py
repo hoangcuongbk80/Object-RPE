@@ -1,17 +1,14 @@
 """
 Mask R-CNN
-Train on the toy Warehouse dataset and implement color splash effect.
+Train on the Warehouse dataset and implement color splash effect.
 
-Copyright (c) 2018 Matterport, Inc.
-Licensed under the MIT License (see LICENSE for details)
-Written by Waleed Abdulla
+Based on the work of Waleed Abdulla (Matterport)
+Modified by Dinh-Cuong Hoang
 
 ------------------------------------------------------------
 
-Usage: import the module (see Jupyter notebooks for examples), or run from
-       the command line as such:
-
-python3 warehouse_train.py --dataset=/media/aass/783de628-b7ff-4217-8c96-7f3764de70d9/Warehouse_Dataset/data --weights=coco
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=coco
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=last
 
 """
 

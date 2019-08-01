@@ -21,8 +21,13 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
 2. To test segmenation module:
    ```bash
    $ cd ~/catkin_ws/src/Object_RPE/Mask-RCNN/samples/warehouse
-   $ python3
+   $ python3 eval.py
    ```
+   It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
+   then save results (mask and accuracy.txt file) into .../Object-RPE/data/mask
+
+   <img src="figs/ex_rgb.png" width="350" /><img src="figs/ex_mask.png" width="350" />
+   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(a) RGB image &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(b) Mask image
 3. To test 3D mapping module:
    ```bash
    $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app

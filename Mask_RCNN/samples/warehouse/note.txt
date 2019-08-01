@@ -1,14 +1,8 @@
 # To train
-python3 warehouse_train.py --dataset=/media/aass/783de628-b7ff-4217-8c96-7f3764de70d9/Warehouse_Dataset/data --weights=coco
-python3 warehouse_train.py --dataset=/media/aass/783de628-b7ff-4217-8c96-7f3764de70d9/Warehouse_Dataset/data --weights=last
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=coco
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=last
 
-Note that it will find data in /train and /val folder of dir provided
-
-#To run inference mode:
-# For single image, it will show instance image aand save to /sample/coo folder
-
-python3 warehouse_inference.py --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/warehouse20190524T1156/mask_rcnn_warehouse_0060.h5 --image=1.png
-
-# For multi images, it will load all images under path/rgb provided and the results are saved to that folder path/instance_labels
-
-python3 warehouse_inference.py --weights=/home/aass/catkin_ws/src/Object-RPE/Mask_RCNN/logs/mask_rcnn_warehouse_0060.h5 --video=/home/aass/catkin_ws/src/Object-RPE/data/
+# To evaluate
+python3 eval.py
+It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
+then save results in .../Object-RPE/data/mask

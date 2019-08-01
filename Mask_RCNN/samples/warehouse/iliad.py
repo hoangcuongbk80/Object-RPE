@@ -1,12 +1,6 @@
 """
 Mask R-CNN for Object_RPE
 ------------------------------------------------------------
-python3 object_rpe.py --weights=/home/aass/Hoang-Cuong/Mask_RCNN/
-logs/warehouse20190524T1156/mask_rcnn_warehouse_0060.h5 --image=1.png
-
-python3 object_rpe.py --weights=/home/aass/Hoang-Cuong/Mask_RCNN/
-logs/warehouse20190524T1156/mask_rcnn_warehouse_0060.h5 --video=/home/aass/Hoang-Cuong/datasets/warehouse_ECMR/0008/
-
 """
 
 import os
