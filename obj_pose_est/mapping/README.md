@@ -47,7 +47,7 @@ Pangolin must be installed AFTER all the other libraries to make use of optional
 
 When you have all of the dependencies installed, build the Core followed by the app.
 
-## 2. Build Core and app
+## 2. Build core and app
 
 Build core:
 ```bash

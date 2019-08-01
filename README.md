@@ -11,13 +11,15 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    $ cd ~/catkin_ws
    $ catkin_make install
    ```
-2. Segmentation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/Mask_RCNN)
-3. 3D mapping [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/obj_pose_est/mapping)
-4. 6D object pose estimation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/DenseFusion)
+2. Segmentation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/iliad/Mask_RCNN)
+3. 3D mapping [here](https://github.com/hoangcuongbk80/Object-RPE/tree/iliad/obj_pose_est/mapping)
+4. 6D object pose estimation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/iliad/DenseFusion)
 
 ## Testing
 
 1. Download data folder here and copy to ~/catkin_ws/src/Object-RPE
+   <img src="figs/copy_data.png" width="290" /><img
+
 2. To test segmenation module:
    ```bash
    $ cd ~/catkin_ws/src/Object_RPE/Mask-RCNN/samples/warehouse
@@ -30,14 +32,15 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
 
 3. To test 3D mapping module:
    ```bash
-   $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app
+   $ cd ~/catkin_ws/src/Object-RPE
    $ python3
    ```
 4. To test pose estimation module:
    ```bash
    $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app
-   $ python3
+   $ ./obj_pose_est/mapping/app/build/mapping -l data/ 100
    ```
+   <img src="figs/mapping.png" width="290" /><img
 
 ## How to operate the system:
 
