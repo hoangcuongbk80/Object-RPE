@@ -36,8 +36,7 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    ```
    <img src="figs/mapping.png" width="350" />
 
-4. To test pose estimation module:
-   Run 
+4. To test pose estimation module: 
    ```bash
    $ roscore
    ```
