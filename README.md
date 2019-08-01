@@ -48,6 +48,7 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    ```bash
    $ roslaunch obj_pose_est launch_object_rpe.launch
    ```
+   The process should look like [this](http://www.youtube.com/timedtext_video?v=1CSoOjFgP-I&ref=share)
    <img src="figs/rviz.png" width="600" />
    
 ## How to operate the system:
