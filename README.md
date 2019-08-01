@@ -34,12 +34,13 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    $ cd ~/catkin_ws/src/Object-RPE
    $ python3
    ```
+   <img src="figs/mapping.png" width="350" />
+
 4. To test pose estimation module:
    ```bash
    $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app
    $ ./obj_pose_est/mapping/app/build/mapping -l data/ 100
    ```
-   <img src="figs/mapping.png" width="350" />
 
 ## How to operate the system:
 
