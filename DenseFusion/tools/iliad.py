@@ -31,6 +31,7 @@ parser.add_argument('--saved_root', type=str, default = '', help='saved result r
 parser.add_argument('--model', type=str, default = '',  help='resume PoseNet model')
 parser.add_argument('--refine_model', type=str, default = '',  help='resume PoseRefineNet model')
 parser.add_argument('--num_frames', type=int, default = 100,  help='number of frames')
+parser.add_argument('--num_keyframes', type=int, default = 10,  help='number of frames')
 
 opt = parser.parse_args()
 
@@ -125,7 +126,8 @@ while 1:
     class_id += 1
 
 data_path = opt.saved_root
-for now in range(0, opt.num_frames, 10):
+incr = opt.num_frames//opt.num_keyframes
+for now in range(0, opt.num_frames, incr):
     num = 1000001 + now
     str_num = str(num)[1:]
     

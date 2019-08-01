@@ -49,7 +49,7 @@ class WarehouseConfig(Config):
     STEPS_PER_EPOCH = 400
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.6
+    DETECTION_MIN_CONFIDENCE = 0.7
 
 def seq_get_masks(image, cur_detection):
 
@@ -77,8 +77,12 @@ def seq_get_masks(image, cur_detection):
 
     return semantic_masks, instance_masks
 
-def detect_and_get_masks(model, data_path, num_frames):
-    for i in range(0, num_frames, 10):
+def detect_and_get_masks(model, data_path, num_frames, num_keyframes):
+    incr = num_frames//num_keyframes
+    if incr < 1:
+        return;
+
+    for i in range(0, num_frames, incr):
         num = 1000001 + i
         str_num = str(num)[1:]
         rgb_addr = "rgb/" + str_num + "-color.png"
@@ -146,6 +150,7 @@ if __name__ == '__main__':
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--num_frames', type=int, default = 100, help='number of images')
+    parser.add_argument('--num_keyframes', type=int, default = 10, help='real number of images applied')
     
     args = parser.parse_args()
 
@@ -159,4 +164,4 @@ if __name__ == '__main__':
     weights_path = args.weights
     model.load_weights(weights_path, by_name=True)
     
-    detect_and_get_masks(model, args.data, args.num_frames)
+    detect_and_get_masks(model, args.data, args.num_frames, args.num_keyframes)

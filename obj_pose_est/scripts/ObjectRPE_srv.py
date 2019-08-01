@@ -14,11 +14,12 @@ def handle_ObjectRPE(req):
     #--------------------------Start DenseFusion---------------------------
     print "Mask-RCNN running ..."
 
-    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/inference.py') 
+    executed_file = os.path.join(req.ObjectRPE_dir, 'Mask_RCNN/samples/warehouse/iliad.py') 
     maskrcnn_model_dir = ' --weights=' + os.path.join(req.data_dir, 'trained_models/warehouse/mask_rcnn.h5')
     num_frames = ' --num_frames=' + str(req.num_frames)
+    num_keyframes = ' --num_keyframes=' + str(req.num_keyframes)
     data_dir = ' --data=' + req.data_dir
-    aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames).read()
+    aa = os.popen('python3 ' + executed_file  + maskrcnn_model_dir + data_dir + num_frames + num_keyframes).read()
 
     #--------------------------End DenseFusion---------------------------
 
@@ -32,16 +33,17 @@ def handle_ObjectRPE(req):
     print("DenseFusion running ...")
 
     densefusion_dir = req.ObjectRPE_dir + '/DenseFusion' 
-    executed_file = ' ./tools/inference_warehouse.py'  
+    executed_file = ' ./tools/iliad.py'  
 
     dataset_root = ' --dataset_root ' + req.data_dir + '/dataset/warehouse'
     saved_root = ' --saved_root ' + req.data_dir
     pose_model = ' --model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_model.pth')
     pose_refine_model = ' --refine_model ' + os.path.join(req.data_dir, 'trained_models/warehouse/pose_refine_model.pth')
     num_frames = ' --num_frames ' + str(req.num_frames)
+    num_keyframes = ' --num_keyframes=' + str(req.num_keyframes)
 
     os.chdir(densefusion_dir)
-    aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames).read()
+    aa = os.popen('python3' + executed_file + dataset_root + saved_root + pose_model + pose_refine_model + num_frames + num_keyframes).read()
     #--------------------------End DenseFusion---------------------------
     
     return 1;

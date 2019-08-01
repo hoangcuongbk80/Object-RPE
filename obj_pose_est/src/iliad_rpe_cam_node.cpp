@@ -28,33 +28,52 @@ class rpeCamNode
     void rgbCallback(const sensor_msgs::Image::ConstPtr& msg);
     
     // Process object poses
+    double overlapPortion(const pcl::PointCloud<pcl::PointXYZRGB> &source, 
+                          const pcl::PointCloud<pcl::PointXYZRGB> &target, 
+                          const double &max_dist);
     bool depthToClould();
     void colorMap(int i, pcl::PointXYZRGB &point);
-    void loadModels();
+    void extract_cam_pose(std::string line);
+    void processModels();
     void getCalibrationParas(std::string dataset);
     void extract_transform_from_quaternion(std::string line, Eigen::Matrix4f &T, int class_index);
     void pose_process();
     
     // Save data
-    bool only_save_frames;
+    bool only_save_frames, call_service;
     int depth_now, rgb_now;
-    int num_frames;
+    int num_frames, num_keyframes;
     std::string data_dir, dataset, ObjectRPE_dir;
     std::string depth_topsub, rgb_topsub;
     std::string saved_rgb_dir, saved_depth_dir;
 
     // Process object poses
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr  scene_cloud;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr  scene_cloud, transformed_scene;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr  pub_cloud;
 
     std::string depth_path, rgb_path;
     cv::Mat rgb_img, depth_img;
     double fx, fy, cx, cy, depth_factor;
+    double dst_thresh; // minimum distance between two points considered as overlapped
+    double overlap_thresh; // minimum overlap portion between two poinclouds considered as the same instance
+    double confidence_thresh; // minimum confidence score of pose estimation for picking
 
-    std::vector<string> object_names; // names of object detected
     std::vector<string> model_paths; // path to model of object detected
-    std::vector<string> full_items; // full list of item names in dataset 
+    std::vector<string> full_items; // full list of item names in dataset
     std::vector<Eigen::Matrix4f> transforms;
+    Eigen::Matrix4f cam_T;
+
+    // Multi prediction process
+    std::vector<pcl::PointCloud<pcl::PointXYZRGB>> curr_models;
+    std::vector<string> curr_objects; // names of object detected in the current image
+    std::vector<int> curr_clsIDs; // class ID of object detected in the current image
+
+    std::vector<pcl::PointCloud<pcl::PointXYZRGB>> global_models;
+    std::vector<string> global_objects; // names of object detected in the current image
+    std::vector<int> global_clsIDs; // class ID of object detected in the current image
+    std::vector<Eigen::Matrix4f> global_transforms;
+    std::vector<double> confidence_scores;
+
 
   private:
    ros::NodeHandle nh_, nh_rgb, nh_depth, nh_cloud, nh_srv;
@@ -76,20 +95,31 @@ rpeCamNode::rpeCamNode()
   nh_rgb.getParam("rgb_topsub", rgb_topsub);
 
   nh_.getParam("only_save_frames", only_save_frames);
-  nh_.getParam("num_frames", num_frames);
-  nh_.getParam("dataset", dataset);
   nh_.getParam("ObjectRPE_dir", ObjectRPE_dir);
+  nh_.getParam("dataset", dataset);
   nh_.getParam("data_dir", data_dir);
+  nh_.getParam("num_frames", num_frames);
+  nh_.getParam("num_keyframes", num_keyframes);  
+  nh_.getParam("call_service", call_service);  
+  nh_.getParam("dst_thresh", dst_thresh);
+  nh_.getParam("overlap_thresh", overlap_thresh);
+  nh_.getParam("confidence_thresh", confidence_thresh);
 
   client = nh_srv.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
   srv.request.ObjectRPE_dir = ObjectRPE_dir;
   srv.request.dataset = dataset;
-  srv.request.data_dir = data_dir; 
+  srv.request.data_dir = data_dir;
   srv.request.num_frames = num_frames;
+  srv.request.num_keyframes = num_keyframes;
 
-  pub_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
   scene_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+  transformed_scene.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+  pub_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+
   depth_now = 0; rgb_now = 0;
+
+  if(num_keyframes > num_frames) std::cerr << "The number of keyframes cannot larger than the number of frames!";
+  getCalibrationParas(dataset);
 }
 
 rpeCamNode::~rpeCamNode()
@@ -121,12 +151,13 @@ void rpeCamNode::depthCallback (const sensor_msgs::Image::ConstPtr& msg)
     return;
   }
 
-  if(depth_now < num_frames) 
+  if(depth_now < num_frames & depth_now == rgb_now) 
   {
     cv::Mat depth = bridge->image;
     depth.convertTo(depth, CV_16UC1, 1000.0);
     int now = 1000001 + depth_now;
     saved_depth_dir = data_dir + "/depth/" + std::to_string(now).substr(1, 6) + "-depth.png";
+    std::cerr << "Save " << saved_depth_dir << "\n";
     cv::imwrite( saved_depth_dir, depth );
     depth_now++;
   }
@@ -175,17 +206,67 @@ void rpeCamNode::rgbCallback (const sensor_msgs::Image::ConstPtr& msg)
     return;
   }
 
-  if(rgb_now < num_frames) 
+  if(rgb_now < num_frames & rgb_now < depth_now)
   {
       cv::Mat rgb_image;
       rgb_image = bridge->image;
       int now = 1000001 + rgb_now;
-      saved_rgb_dir = data_dir + "/rgb/" + std::to_string(now).substr(1, 6) + "-color.png";  
+      saved_rgb_dir = data_dir + "/rgb/" + std::to_string(now).substr(1, 6) + "-color.png";
+      std::cerr << "Save " << saved_rgb_dir << "\n";
       cv::imwrite( saved_rgb_dir, rgb_image );
       rgb_now++;
       //cv::imshow("RGB image", rgb_image);
       //cv::waitKey(3);
   }
+}
+
+void rpeCamNode::getCalibrationParas(std::string dataset)
+{
+  if(dataset == "YCB-Video")
+  {
+
+  }
+  if(dataset == "Warehouse")
+  {
+    fx=580.0; fy=580.0;
+    cx=319.0; cy=237.0;
+    depth_factor = 1000;
+  }
+}
+
+void rpeCamNode::extract_transform_from_quaternion(std::string line, Eigen::Matrix4f &T, int class_index)
+{
+	  Eigen::Vector3f trans;
+    float rot_quaternion[4];
+    vector<string> st;
+    boost::trim(line);
+		boost::split(st, line, boost::is_any_of("\t\r "), boost::token_compress_on);
+    trans(0) = std::stof(st[4]); trans(1) = std::stof(st[5]); trans(2) = std::stof(st[6]); //translaton
+    rot_quaternion[0] = std::stof(st[0]); rot_quaternion[1] = std::stof(st[1]); //rotation
+    rot_quaternion[2] = std::stof(st[2]); rot_quaternion[3] = std::stof(st[3]); //rotation
+
+    Eigen::Quaternionf q(rot_quaternion[0], rot_quaternion[1], rot_quaternion[2], rot_quaternion[3]); //w x y z
+    
+    T.block(0, 3, 3, 1) = trans;
+    T.block(0, 0, 3, 3) = q.normalized().toRotationMatrix();
+}
+
+void rpeCamNode::extract_cam_pose(std::string line)
+{
+	  Eigen::Vector3f trans;
+    float rot_quaternion[4];
+    vector<string> st;
+    boost::trim(line);
+		boost::split(st, line, boost::is_any_of("\t\r "), boost::token_compress_on);
+    trans(0) = std::stof(st[1]); trans(1) = std::stof(st[2]); trans(2) = std::stof(st[3]); //translaton
+    rot_quaternion[0] = std::stof(st[7]); rot_quaternion[1] = std::stof(st[4]); //rotation
+    rot_quaternion[2] = std::stof(st[5]); rot_quaternion[3] = std::stof(st[6]); //rotation
+
+    Eigen::Quaternionf q(rot_quaternion[0], rot_quaternion[1], rot_quaternion[2], rot_quaternion[3]); //w x y z
+    
+    cam_T.setIdentity();
+    cam_T.block(0, 3, 3, 1) = trans;
+    cam_T.block(0, 0, 3, 3) = q.normalized().toRotationMatrix();
 }
 
 bool rpeCamNode::depthToClould()
@@ -291,60 +372,125 @@ void rpeCamNode::colorMap(int i, pcl::PointXYZRGB &point)
   }                   
 }
 
-void rpeCamNode::loadModels()
+double rpeCamNode::overlapPortion(const pcl::PointCloud<pcl::PointXYZRGB> &source, 
+                                          const pcl::PointCloud<pcl::PointXYZRGB> &target, 
+                                          const double &max_dist)
+{
+	if (source.size() == 0 || target.size() == 0) return -1;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr target_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr source_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::copyPointCloud(target, *target_cloud);
+	pcl::copyPointCloud(source, *source_cloud);
+	
+	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+	kdtree.setInputCloud(target_cloud);
+	std::vector<int> pointIdxNKNSearch(1);
+	std::vector<float> pointNKNSquaredDistance(1);
+
+	int overlap_Points = 0;
+	for (int i = 0; i < source.size(); ++i)
+	{
+		if (kdtree.nearestKSearch(source_cloud->points[i], 1, pointIdxNKNSearch, pointNKNSquaredDistance) > 0)
+		{
+            if(sqrt(pointNKNSquaredDistance[0]) < max_dist)
+			    overlap_Points++;
+		}
+	}
+
+	//calculating the mean distance
+	double portion = (double) overlap_Points / source.size();
+	return portion;
+}
+
+void rpeCamNode::processModels()
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr  model_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  std::vector<pcl::PointCloud<pcl::PointXYZRGB>> original_models;
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr  color_model_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-
+  
   for(int i=0; i < model_paths.size(); i++)
   {
     pcl::io::loadPLYFile<pcl::PointXYZ> (model_paths[i], *model_cloud);
-    pcl::transformPointCloud(*model_cloud, *model_cloud, transforms[i]);
     copyPointCloud(*model_cloud, *color_model_cloud);
+    original_models.push_back(*color_model_cloud);
+    pcl::transformPointCloud(*color_model_cloud, *color_model_cloud, transforms[i]);
     for(int k=0; k < color_model_cloud->size(); k++)
     {
       colorMap(i+1, color_model_cloud->points[k]);
+    }    
+    curr_models.push_back(*color_model_cloud);
+  }
+  
+  if(!curr_models.size()) return;
+  if(!global_models.size())
+  {
+    for(int i=0; i < curr_models.size(); i++)
+    {
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr  transformed_model (new pcl::PointCloud<pcl::PointXYZRGB>);
+      pcl::transformPointCloud(curr_models[i], *transformed_model, cam_T);
+      global_models.push_back(*transformed_model);
+      global_objects.push_back(curr_objects[i]);
+      global_clsIDs.push_back(curr_clsIDs[i]);
+      confidence_scores.push_back(1);
+      Eigen::Matrix4f global_T = cam_T * transforms[i];
+      global_transforms.push_back(global_T);
     }
-    *pub_cloud += *color_model_cloud;
+    return;
   }
-}
 
-void rpeCamNode::getCalibrationParas(std::string dataset)
-{
-  if(dataset == "YCB-Video")
+  for(int i=0; i < curr_models.size(); i++)
   {
-
-  }
-  if(dataset == "Warehouse")
-  {
-    fx=580.0; fy=580.0;
-    cx=319.0; cy=237.0;
-    depth_factor = 1000;
-  }
-}
-
-void rpeCamNode::extract_transform_from_quaternion(std::string line, Eigen::Matrix4f &T, int class_index)
-{
-	  Eigen::Vector3f trans;
-    float rot_quaternion[4];
-    vector<string> st;
-    boost::trim(line);
-		boost::split(st, line, boost::is_any_of("\t\r "), boost::token_compress_on);
-    trans(0) = std::stof(st[4]); trans(1) = std::stof(st[5]); trans(2) = std::stof(st[6]); //translaton
-    rot_quaternion[0] = std::stof(st[0]); rot_quaternion[1] = std::stof(st[1]); //rotation
-    rot_quaternion[2] = std::stof(st[2]); rot_quaternion[3] = std::stof(st[3]); //rotation
-
-    Eigen::Quaternionf q(rot_quaternion[0], rot_quaternion[1], rot_quaternion[2], rot_quaternion[3]); //w x y z
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr  transformed_model (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::transformPointCloud(curr_models[i], *transformed_model, cam_T);
+    int numOfGlobalObjects = global_models.size();
+    bool new_object = true;
     
-    T.block(0, 3, 3, 1) = trans;
-    T.block(0, 0, 3, 3) = q.normalized().toRotationMatrix();
+    for(int j=0; j < numOfGlobalObjects; j++)
+    {
+      if(curr_clsIDs[i] == global_clsIDs[j])
+      {
+        double overlap = overlapPortion(*transformed_model, global_models[i], dst_thresh);
+        if(overlap > overlap_thresh)
+        {
+          Eigen::Matrix4f global_T = cam_T * transforms[i];
+          global_T = (global_transforms[j] * confidence_scores[i] + global_T) / (confidence_scores[i]+1);
+          pcl::transformPointCloud(original_models[i], *transformed_model, global_T);
+
+          for(int k=0; k < transformed_model->size(); k++)
+          {
+            colorMap(j+1, transformed_model->points[k]);
+          }
+          global_models[j] = *transformed_model;
+          confidence_scores[j] = confidence_scores[i] * (1+overlap);
+        }
+        new_object = false;
+      }
+    }
+
+    if(new_object)
+    {
+      for(int k=0; k < transformed_model->size(); k++)
+      {
+        colorMap(global_models.size()+1, transformed_model->points[k]);
+      }
+      global_models.push_back(*transformed_model);
+      global_clsIDs.push_back(curr_clsIDs[i]);
+      global_objects.push_back(curr_objects[i]);
+      confidence_scores.push_back(1);
+      Eigen::Matrix4f global_T = cam_T * transforms[i];
+      global_transforms.push_back(global_T);
+    }
+
+  }
 }
 
 void rpeCamNode::pose_process()
 {
   std::string classes_path = data_dir + "/dataset/warehouse/image_sets/classes.txt";
-  std::string pose_path = data_dir + "/DenseFusion_Poses.txt";
   std::string model_dir = data_dir + "/dataset/warehouse/models";
+  
+  pcl::PCLPointCloud2 cloud_filtered;
+  sensor_msgs::PointCloud2 output;
   
   ifstream classes_file (classes_path);
   if (classes_file.is_open())                     
@@ -362,45 +508,67 @@ void rpeCamNode::pose_process()
       exit(0);
     }
   classes_file.close();
-  
-  ifstream posefile (pose_path);    
-  string line;
-  bool firstLine = true;                             
 
-  while (!posefile.eof())
+  std::string cam_traject_path = data_dir + "/map.freiburg";
+  ifstream cam_traject_file (cam_traject_path);
+  if(cam_traject_file.fail())
   {
+    std::cerr << "Cannot read " << cam_traject_path << "n";
+    return;
+  }
+
+  cam_traject_file.clear();
+  cam_traject_file.seekg(0, ios::beg);
+  global_models.clear();
+  global_objects.clear();
+  global_clsIDs.clear();
+  confidence_scores.clear();
+  global_transforms.clear();
+
+  for(int now=0; now < num_frames; now++)
+  {
+    string cam_line;
+    if(!cam_traject_file.eof()) getline (cam_traject_file, cam_line);
+    
+    int num = 1000001 + now;
+    std::string str_num = std::to_string(num).substr(1, 6);
+    std::string pose_path = data_dir + "/mask/" + str_num + "-object_poses.txt";
+
+    ifstream posefile (pose_path);
+    if(posefile.fail()) continue;
+
     pub_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     scene_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+    transformed_scene.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     model_paths.clear();
     transforms.clear();
-    object_names.clear();
+    curr_objects.clear();
+    curr_clsIDs.clear();
+    curr_models.clear();
 
-    if (posefile.is_open())                     
+    depth_path = data_dir + "/depth/" + str_num + "-depth.png";
+    rgb_path = data_dir + "/rgb/" + str_num + "-color.png";            
+
+    string line;
+
+    if (posefile.is_open())            
     {
-      if (!posefile.eof())                 
+      while(!posefile.eof())
       {
-        if(firstLine) 
-        {
-          getline (posefile, line);
-          firstLine = false;
-        }
-        depth_path = data_dir + "/depth/" + line + "-depth.png";
-        rgb_path = data_dir + "/rgb/" + line + "-color.png";            
-        std::cerr << line <<  endl;     
+        if(!posefile.eof()) getline (posefile, line);
+        if(line=="") continue;
+        curr_clsIDs.push_back(std::stoi(line));
+        int cls_index = std::stoi(line) - 1;
+        std::string model_path = model_dir + "/" + full_items[cls_index] + "/points.ply";
+        
+        curr_objects.push_back(full_items[cls_index]);
+        model_paths.push_back(model_path);
+        if(!posefile.eof()) getline (posefile, line);
+        if(line=="") continue;
 
-        while(true)
-        {
-          getline (posefile, line);
-          if(line.length() == 6 | line=="") break;
-          int cls_index = std::stoi(line) - 1;
-          std::string model_path = model_dir + "/" + full_items[cls_index] + "/points.ply";
-          object_names.push_back(full_items[cls_index]);
-          model_paths.push_back(model_path);
-          getline (posefile, line);
-          Eigen::Matrix4f T(Eigen::Matrix4f::Identity());
-          extract_transform_from_quaternion(line, T, cls_index);          
-          transforms.push_back(T);
-        }
+        Eigen::Matrix4f T(Eigen::Matrix4f::Identity());
+        extract_transform_from_quaternion(line, T, cls_index);          
+        transforms.push_back(T);
       }
     }
     else 
@@ -410,12 +578,35 @@ void rpeCamNode::pose_process()
     }
     if(model_paths.size())
     {
-      loadModels();
       if(!depthToClould()) continue ;
+      if(cam_line!="")
+      {
+        extract_cam_pose(cam_line);
+        pcl::transformPointCloud(*scene_cloud, *transformed_scene, cam_T);
+      }
+      else continue;
+      processModels();
     }
-    *pub_cloud += *scene_cloud;
-    std::cerr << "scene: " << scene_cloud->size() << "\n"; 
-    std::cerr << "pub: " << pub_cloud->size() << "\n"; 
+
+    if(cam_line!="")
+    {
+      extract_cam_pose(cam_line);
+      pcl::transformPointCloud(*scene_cloud, *transformed_scene, cam_T);
+    }
+    posefile.close();
+  }
+  cam_traject_file.close();
+
+  pub_cloud.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
+  *pub_cloud += *transformed_scene;
+  pub_cloud->header.frame_id = "camera_depth_optical_frame";  
+  if(global_models.size())
+  {
+    for(int i=0; i < global_models.size(); i++)
+    {
+      if(confidence_scores[i] > confidence_thresh)
+        *pub_cloud += global_models[i];
+    }
   }
 }
 

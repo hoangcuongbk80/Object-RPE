@@ -33,7 +33,9 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr  pub_multi_pred (new pcl::PointCloud<pcl:
 std::string depth_path, rgb_path;
 cv::Mat rgb_img, depth_img;
 double fx, fy, cx, cy, depth_factor;
-double dst_thresh;
+double dst_thresh; // minimum distance between two points considered as overlapped
+double overlap_thresh; // minimum overlap portion between two poinclouds considered as the same instance
+double confidence_thresh; // minimum confidence score of pose estimation for picking
 
 std::vector<string> model_paths; // path to model of object detected
 std::vector<string> full_items; // full list of item names in dataset
@@ -47,6 +49,8 @@ std::vector<int> curr_clsIDs; // class ID of object detected in the current imag
 std::vector<pcl::PointCloud<pcl::PointXYZRGB>> global_models;
 std::vector<string> global_objects; // names of object detected in the current image
 std::vector<int> global_clsIDs; // class ID of object detected in the current image
+std::vector<Eigen::Matrix4f> global_transforms;
+std::vector<double> confidence_scores;
 
 bool depthToClould()
 {
@@ -184,13 +188,15 @@ double overlapPortion(const pcl::PointCloud<pcl::PointXYZRGB> &source,
 void processModels()
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr  model_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+  std::vector<pcl::PointCloud<pcl::PointXYZRGB>> original_models;
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr  color_model_cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
   
   for(int i=0; i < model_paths.size(); i++)
   {
     pcl::io::loadPLYFile<pcl::PointXYZ> (model_paths[i], *model_cloud);
-    pcl::transformPointCloud(*model_cloud, *model_cloud, transforms[i]);
     copyPointCloud(*model_cloud, *color_model_cloud);
+    original_models.push_back(*color_model_cloud);
+    pcl::transformPointCloud(*color_model_cloud, *color_model_cloud, transforms[i]);
     for(int k=0; k < color_model_cloud->size(); k++)
     {
       colorMap(i+1, color_model_cloud->points[k]);
@@ -208,6 +214,9 @@ void processModels()
       global_models.push_back(*transformed_model);
       global_objects.push_back(curr_objects[i]);
       global_clsIDs.push_back(curr_clsIDs[i]);
+      confidence_scores.push_back(1);
+      Eigen::Matrix4f global_T = cam_T * transforms[i];
+      global_transforms.push_back(global_T);
     }
     return;
   }
@@ -217,32 +226,44 @@ void processModels()
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr  transformed_model (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::transformPointCloud(curr_models[i], *transformed_model, cam_T);
     int numOfGlobalObjects = global_models.size();
+    bool new_object = true;
+    
     for(int j=0; j < numOfGlobalObjects; j++)
     {
       if(curr_clsIDs[i] == global_clsIDs[j])
       {
-        double overlap = overlapPortion(*transformed_model, global_models[i], 0.1);
-        if(overlap > 0.1) 
+        double overlap = overlapPortion(*transformed_model, global_models[i], dst_thresh);
+        if(overlap > overlap_thresh)
         {
+          Eigen::Matrix4f global_T = cam_T * transforms[i];
+          global_T = (global_transforms[j] * confidence_scores[i] + global_T) / (confidence_scores[i]+1);
+          pcl::transformPointCloud(original_models[i], *transformed_model, global_T);
+
           for(int k=0; k < transformed_model->size(); k++)
           {
             colorMap(j+1, transformed_model->points[k]);
           }
           global_models[j] = *transformed_model;
+          confidence_scores[j] = confidence_scores[i] * (1+overlap);
         }
-        else //new object
-        {
-          std::cerr << curr_objects[i] << " " << overlap << "\n";
-          for(int k=0; k < transformed_model->size(); k++)
-          {
-            colorMap(global_models.size()+1, transformed_model->points[k]);
-          }
-          global_models.push_back(*transformed_model);
-          global_clsIDs.push_back(curr_clsIDs[i]);
-          global_objects.push_back(curr_objects[i]); 
-        }
+        new_object = false;
       }
     }
+
+    if(new_object)
+    {
+      for(int k=0; k < transformed_model->size(); k++)
+      {
+        colorMap(global_models.size()+1, transformed_model->points[k]);
+      }
+      global_models.push_back(*transformed_model);
+      global_clsIDs.push_back(curr_clsIDs[i]);
+      global_objects.push_back(curr_objects[i]);
+      confidence_scores.push_back(1);
+      Eigen::Matrix4f global_T = cam_T * transforms[i];
+      global_transforms.push_back(global_T);
+    }
+
   }
 }
 
@@ -299,36 +320,41 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "ObjectRPE");
 
-  ros::NodeHandle n_, nh_, cloud_n, cloud_mul_n;
-  ros::Publisher cloud_pub_one_pred = cloud_n.advertise<sensor_msgs::PointCloud2> ("one_pred", 1);
+  ros::NodeHandle nh_, nh_srv, nh_cloud, cloud_mul_n;
+  ros::Publisher cloud_pub_one_pred = nh_cloud.advertise<sensor_msgs::PointCloud2> ("one_pred", 1);
   ros::Publisher cloud_pub_multi_pred = cloud_mul_n.advertise<sensor_msgs::PointCloud2> ("multi_pred", 1);
   ros::Rate loop_rate(10);
 
   std::string dataset, ObjectRPE_dir, data_dir; 
-  int num_frames;
+  int num_frames, num_keyframes;
   bool call_service;
 
-  n_ = ros::NodeHandle("~");
-  n_.getParam("ObjectRPE_dir", ObjectRPE_dir);
-  n_.getParam("dataset", dataset);
-  n_.getParam("data_dir", data_dir);
-  n_.getParam("num_frames", num_frames);  
-  n_.getParam("call_service", call_service);  
-  n_.getParam("dst_thresh", dst_thresh);  
+  nh_ = ros::NodeHandle("~");
+  nh_.getParam("ObjectRPE_dir", ObjectRPE_dir);
+  nh_.getParam("dataset", dataset);
+  nh_.getParam("data_dir", data_dir);
+  nh_.getParam("num_frames", num_frames);
+  nh_.getParam("num_keyframes", num_keyframes);  
+  nh_.getParam("call_service", call_service);  
+  nh_.getParam("dst_thresh", dst_thresh);
+  nh_.getParam("overlap_thresh", overlap_thresh);
+  nh_.getParam("confidence_thresh", confidence_thresh);
 
+  if(num_keyframes > num_frames) std::cerr << "The number of keyframes cannot larger than the number of frames!";
   getCalibrationParas(dataset);
 
   //-----------------------Call service for MaskRCNN and DenseFusion---------------------------
 
   if(call_service)
   {
-    ros::ServiceClient client = nh_.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
+    ros::ServiceClient client = nh_srv.serviceClient<obj_pose_est::ObjectRPE>("Seg_Reconst_PoseEst");
     obj_pose_est::ObjectRPE srv;
 
     srv.request.ObjectRPE_dir = ObjectRPE_dir;
     srv.request.dataset = dataset;
     srv.request.data_dir = data_dir;
     srv.request.num_frames = num_frames;
+    srv.request.num_keyframes = num_keyframes;
 
     ROS_INFO("ObjectRPE running");
     
@@ -388,7 +414,8 @@ int main(int argc, char** argv)
       global_models.clear();
       global_objects.clear();
       global_clsIDs.clear();
-      std::cerr << "Restart\n";
+      confidence_scores.clear();
+      global_transforms.clear();
       continue;
     }
 
@@ -401,8 +428,6 @@ int main(int argc, char** argv)
 
     ifstream posefile (pose_path);
     if(posefile.fail()) continue;
-    std::cerr << str_num << "\n";
-    std::cerr << global_models.size() << " " << global_objects.size() << " " << global_clsIDs.size() << "\n";
 
     pub_one_pred.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
     pub_multi_pred.reset(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -470,7 +495,10 @@ int main(int argc, char** argv)
     if(global_models.size())
     {
       for(int i=0; i < global_models.size(); i++)
-        *pub_multi_pred += global_models[i];
+      {
+        if(confidence_scores[i] > confidence_thresh)
+          *pub_multi_pred += global_models[i];
+      }
     }
 
     *pub_one_pred += *scene_cloud;

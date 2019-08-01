@@ -2,5 +2,6 @@ string ObjectRPE_dir
 string dataset
 string data_dir
 int64 num_frames
+int64 num_keyframes
 ---
 int64 ouput

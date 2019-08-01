@@ -4,8 +4,12 @@
   <param name="ObjectRPE_dir" value="/home/aass/catkin_ws/src/Object-RPE"/>  
   <param name="dataset" value="Warehouse"/> <!-- YCB-Video or Warehouse -->  
   <param name="data_dir" value="/home/aass/catkin_ws/src/Object-RPE/data"/>
-  <param name="num_frames" value="100"/>
-  <param name="call_service" value="true"/>
-  <param name="dst_thresh" value="20"/>
+  <param name="num_frames" value="150"/> <!-- Number of RGB-D frames will be processed in 3D mapping-->
+  <param name="num_keyframes" value="10"/> <!-- Number of RGB-D keyframes will be applied for Mask-RCNN and DenseFusion -->
+  <param name="call_service" value="false"/>
+  <param name="dst_thresh" value="0.05"/> <!-- maximum distance between two points considered as overlapped, unit meter -->
+  <param name="overlap_thresh" value="0.3"/> <!-- minimum overlap portion between two poinclouds considered as the same instance, unit pecent -->
+  <param name="confidence_thresh" value="2.0"/> <!-- minimum confidence score of pose estimation for picking, score = score*(1+overlap_portion) -->
+
   </node>
 </launch>
