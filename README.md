@@ -27,7 +27,7 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    then save results (mask and accuracy.txt file) into .../Object-RPE/data/mask
 
    <img src="figs/ex_rgb.png" width="290" /><img src="figs/ex_mask.png" width="290" />
-   &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(a) RGB image &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;(b) Mask image
+
 3. To test 3D mapping module:
    ```bash
    $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app
