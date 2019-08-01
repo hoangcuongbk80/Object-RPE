@@ -4,6 +4,8 @@ Based on the work of Waleed Abdulla (Matterport)
 Modified by Dinh-Cuong Hoang
 ------------------------------------------------------------
 python3 eval.py
+It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
+then save results in .../Object-RPE/data/mask
 """
 
 import os
