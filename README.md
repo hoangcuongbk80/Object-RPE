@@ -49,12 +49,12 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
    $ roslaunch obj_pose_est launch_object_rpe.launch
    ```
    <img src="figs/rviz.png" width="600" />
-   
-## How to operate the system:
 
-```bash
+## How to operate the system?
+
+   ```bash
    $ roscore
    $ rosrun obj_pose_est ObjectRPE_srv.py
-   $ roslaunch obj_pose_est launch_object_rpe.launch
    $ roslaunch obj_pose_est launch_rpe_cam.launch
+   $ roslaunch openni2_launch openni2.launch
    ```
