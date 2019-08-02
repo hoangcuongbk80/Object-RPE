@@ -17,7 +17,7 @@ This contains a brief guide how to install / run the ROS-based [Object-RPE](http
 
 ## Testing
 
-1. Download data folder [here](https://www.dropbox.com/sh/d147luhi5gvpmzn/AAAYD-NUKqvaEnHpWKdU-UJ5a?dl=0) and copy to ~/catkin_ws/src/Object-RPE
+1. Download data folder [here](https://drive.google.com/file/d/1dzwcLOiakkSLiUoJXkPD8-QkIBFTJMXQ/view?usp=sharing) and copy to ~/catkin_ws/src/Object-RPE
 
 2. To test segmenation module:
    ```bash
