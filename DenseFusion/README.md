@@ -1,5 +1,5 @@
 # DenseFusion
-Based on the work of [Chen Wang](https://github.com/j96w/DenseFusion)
+Based on the work of [Chen Wang](https://github.com/j96w/DenseFusion) <br />
 Modified by Dinh-Cuong Hoang
 
 ## Requirements
