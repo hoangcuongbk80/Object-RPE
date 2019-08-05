@@ -2,7 +2,7 @@
 #
 # Usage:  ./docker_run.sh [/path/to/data]
 #
-# This script calls `nvidia-docker run` to start the labelfusion
+# This script calls `nvidia-docker run` to start the mask-rcnn
 # container with an interactive bash session.  This script sets
 # the required environment variables and mounts the labelfusion
 # source directory as a volume in the docker container.  If the
@@ -12,4 +12,5 @@
 
 image_name=hoangcuongbk80/maskrcnn-gpu:latest
 
-sudo nvidia-docker run --name mask-rcnn -it --rm -v /home/aass/Hoang-Cuong/Mask_RCNN:/maskrcnn hoangcuongbk80/maskrcnn-gpu /bin/bash
+nvidia-docker run --name Object-RPE -it --rm -v /home/cghg/Object-RPE:/Object-RPE -v /media/DiskStation/trsv/data/YCB_Video_Dataset:/YCB_Video_Dataset hoangcuongbk80/maskrcnn-gpu /bin/bash
+
