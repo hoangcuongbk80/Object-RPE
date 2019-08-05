@@ -137,7 +137,7 @@ def detect_and_get_masks(model):
     accur_file.close()
     
 if __name__ == '__main__':
-    class InferenceConfig(YCB):
+    class InferenceConfig(YCBConfig):
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
     config = InferenceConfig()
