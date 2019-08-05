@@ -1,17 +1,8 @@
-# Train a new model starting from pre-trained COCO weights
-python3 ycb_train.py --dataset=/home/aass/Hoang-Cuong/datasets/YCB-Video/YCB-train-val/ --weights=coco
+# To train
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=coco
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=last
 
-# Resume training a model that you had trained earlier
-python3 ycb_train.py --dataset=/home/aass/Hoang-Cuong/datasets/YCB-Video/YCB-train-val/ --weights=last
-
-Note that it will find data in /train and /val folder of dir provided
-
-#To run inference mode:
-# For single image, it will show instance image aand save to /sample/coo folder
-
-aass@aass-Z87X-D3H:~/Hoang-Cuong/Mask_RCNN/samples/balloon$ python3 balloon_inference.py inference --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/balloon20190215T0947/mask_rcnn_balloon_0040.h5  --image=000600-color.png
-
-# For multi images, it will load all images under path/rgb provided and the results are saved to that folder path/instance_labels
-
-python3 balloon_inference.py inference --weights=/home/aass/Hoang-Cuong/Mask_RCNN/logs/balloon20190215T0947/mask_rcnn_balloon_0080.h5  --video=/home/aass/Hoang-Cuong/datasets/YCB-Video/0003/
-
+# To evaluate
+python3 eval.py
+It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
+then save results in .../Object-RPE/data/mask

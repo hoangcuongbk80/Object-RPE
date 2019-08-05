@@ -1,21 +1,14 @@
 """
 Mask R-CNN
-Train on the toy YCB dataset and implement color splash effect.
+Train on the Warehouse dataset and implement color splash effect.
 
-Copyright (c) 2018 Matterport, Inc.
-Licensed under the MIT License (see LICENSE for details)
-Written by Waleed Abdulla
+Based on the work of Waleed Abdulla (Matterport)
+Modified by Dinh-Cuong Hoang
 
 ------------------------------------------------------------
 
-Usage: import the module (see Jupyter notebooks for examples), or run from
-       the command line as such:
-
-    # Train a new model starting from pre-trained COCO weights
-     python3 ycb_train.py --dataset=/home/aass/Hoang-Cuong/datasets/YCB-Video/YCB-train-val/ --weights=coco
-
-    # Resume training a model that you had trained earlier
-     python3 ycb_train.py --dataset=/home/aass/Hoang-Cuong/datasets/YCB-Video/YCB-train-val/ --weights=last
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=coco
+python3 train.py --dataset=/Warehouse_Dataset/data --weights=last
 
 """
 
