@@ -242,14 +242,21 @@ void MainController::run()
 
         std::string rgb_dir = data_dir + "rgb/" + index_str.substr(1,6) + "-color.png";
         std::string depth_dir = data_dir + "depth/" + index_str.substr(1,6) + "-depth.png";
-        std::string mask_dir = data_dir + "mask-color/" + index_str.substr(1,6) + ".png";
+        std::string mask_dir = data_dir + "mask-color/" + index_str.substr(1,6) + "-label.png";
 
         //std::string saved_mask_dir = "/home/aass/Hoang-Cuong/temp/imags/" + index_str.substr(1,6) + "_color_labels.png";
         //cv::imwrite(saved_mask_dir, mask_img);
 
-        rgb_img = cv::imread(rgb_dir, -1);
+        rgb_img = cv::imread(rgb_dir, -1);  
         mask_img = cv::imread(mask_dir, -1);
         depth_img = cv::imread(depth_dir, -1);
+        
+        cv::Mat depth_dis;
+        depth_img.convertTo(depth_dis, CV_8UC1, 0.1);
+        cv::imshow("color", rgb_img);
+        cv::waitKey(3);
+        cv::imshow("depth", depth_dis);
+        cv::waitKey(3);
         if(!rgb_img.data || !depth_img.data || !mask_img.data)
         {
             if(img_count == img_num)
