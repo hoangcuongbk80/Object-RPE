@@ -14,7 +14,7 @@ The tools require full ROS installation. The installation assumes you have Ubunt
    ```
 3. Segmentation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/Mask_RCNN)
 4. 3D mapping [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/obj_pose_est/mapping)
-5. 6D object pose estimation [here](https://github.com/hoangcuongbk80/Object-RPE/master/iliad/DenseFusion)
+5. 6D object pose estimation [here](https://github.com/hoangcuongbk80/Object-RPE/tree/master/DenseFusion)
 
 ## How to operate the system?
 
