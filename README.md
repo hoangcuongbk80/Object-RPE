@@ -1,3 +1,6 @@
 # Object-RPEv2
 This is an implementation of [Object-RPEv2](https://sites.google.com/view/object-rpev2) <br />
 We are documenting the project once our paper is published!
+If you are interested in the previous version [Object-RPE](https://sites.google.com/view/object-rpe) or a ROS-based implementation with an online camera for [ILIAD-project](https://iliad-project.eu/), you can find more info in the links below: <br />
+Object-RPE [code](https://github.com/hoangcuongbk80/Object-RPE) <br />
+ILIAD [code](https://github.com/hoangcuongbk80/Object-RPE/tree/iliad)
