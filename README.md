@@ -1,3 +1,3 @@
-# Object-RPE
+# Object-RPEv2
 This is an implementation of [Object-RPEv2](https://sites.google.com/view/object-rpev2) <br />
 We are documenting the project once our paper is published!
