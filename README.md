@@ -2,6 +2,7 @@
 This contains a brief guide how to install / run the ROS-based simplified [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project. <br />
 
 In this version, we add one more object into our datataset, called "hallon_soppa" as following: <br />
+
 ![Hallon_soppa](figs/hallon_soppa.png)
 
 In addition, we also collected more data for pallet detection and re-training the CNNs.
