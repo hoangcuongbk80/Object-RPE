@@ -1,7 +1,7 @@
-# 6D Object Pose Estimation (D6.4 [ILIAD](https://iliad-project.eu))
-This contains a brief guide how to install / run the ROS-based simplified [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project.
+# 6D Pallet Pose Estimation (D6.4 [ILIAD](https://iliad-project.eu))
+This contains a brief guide how to install / run the ROS-based simplified [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project for pallet detection and pose estimation.
 
-## The set of 11 objects in our warehouse dataset.
+## The EUR/EPAL-pallet is 1,200 mm × 800 mm × 144 mm (47.2 in × 31.5 in × 5.7 in)
 ![The set of 11 objects](figs/ex1.png)
 
 ## Installation and compile the source
