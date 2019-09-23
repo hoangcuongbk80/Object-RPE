@@ -1,5 +1,5 @@
 # 6D Object Pose Estimation (D6.4 [ILIAD](https://iliad-project.eu))
-This contains a brief guide how to install / run the ROS-based [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project.
+This contains a brief guide how to install / run the ROS-based simplified [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project.
 
 ## The set of 11 objects in our warehouse dataset.
 ![The set of 11 objects](figs/ex1.png)
