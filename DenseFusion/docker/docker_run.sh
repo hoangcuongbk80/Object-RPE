@@ -16,3 +16,5 @@ nvidia-docker run --name densefusion -it --rm -v /home/aass/Hoang-Cuong/Seg_SLAM
 
 nvidia-docker run --name densefusion -it --rm -v /home/cghg/DenseFusion:/densefusion -v /media/DiskStation/trsv/data/Warehouse_Dataset:/warehouse_dataset hoangcuongbk80/densefusion-pytorch-1.0 /bin/bash
 
+$ cd densefusion
+$ sh /experiments/scripts/train_warehouse.sh
