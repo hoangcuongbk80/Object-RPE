@@ -43,7 +43,7 @@ class WarehouseConfig(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 13  # Background + objects
+    NUM_CLASSES = 1 + 14  # Background + objects
 
     # Number of training steps per epoch
     STEPS_PER_EPOCH = 400
