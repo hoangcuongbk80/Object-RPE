@@ -1,5 +1,7 @@
 # 6D Object Pose Estimation (D6.4 [ILIAD](https://iliad-project.eu))
-This contains a brief guide how to install / run the ROS-based [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project.
+This contains a brief guide how to install / run the ROS-based simplified [Object-RPE](https://sites.google.com/view/object-rpe) developed at ORU in D6.4 [ILIAD](https://iliad-project.eu) project.
+In this version, we add one more object into our datataset, called "hallon_soppa" as following:
+In addition, we also collected more data for pallet detection and re-training the CNNs.
 
 ## The set of 11 objects in our warehouse dataset.
 ![The set of 11 objects](figs/ex1.png)
