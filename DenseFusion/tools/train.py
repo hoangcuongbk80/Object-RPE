@@ -60,7 +60,7 @@ def main():
         opt.log_dir = 'experiments/logs/ycb' #folder to save logs
         opt.repeat_epoch = 1 #number of repeat times for one epoch training
     elif opt.dataset == 'warehouse':
-        opt.num_objects = 13
+        opt.num_objects = 14
         opt.num_points = 1000
         opt.outf = 'trained_models/warehouse'
         opt.log_dir = 'experiments/logs/warehouse'
