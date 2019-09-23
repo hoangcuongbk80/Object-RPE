@@ -54,7 +54,7 @@ class WarehouseConfig(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 13  # Background + objects
+    NUM_CLASSES = 1 + 14  # Background + objects
 
     # Number of training steps per epoch
     STEPS_PER_EPOCH = 400
@@ -88,6 +88,7 @@ class WarehouseDataset(utils.Dataset):
         self.add_class("Warehouse", 11, "sotstark")
         self.add_class("Warehouse", 12, "tomatpure")
         self.add_class("Warehouse", 13, "small_jacky")
+        self.add_class("Warehouse", 14, "hallon_soppa")
 
         # Train or validation dataset?
         assert subset in ["train", "val"]
