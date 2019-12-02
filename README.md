@@ -1,4 +1,4 @@
-# Object-RPEv2
+# Panoptic-MOPE
 This is an implementation of [Panoptic-MOPE](https://sites.google.com/view/panoptic-mope) <br />
 We are documenting the project once our paper is published! <br />
 
