@@ -25,4 +25,4 @@ Python 3.4, TensorFlow 1.3, Keras 2.0.8 and other common packages listed in `req
     sudo python3 eval.py
     ```
     
-Read rgb and round-truth images from rgb/ and gt/ folders in .../Object-RPE/data, then save results in .../Object-RPE.data/mask
+Read rgb and round-truth images from rgb/ and gt/ folders in .../Object-RPE/data, then save results in .../Object-RPE/data/mask
