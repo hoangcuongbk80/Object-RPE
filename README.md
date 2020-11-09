@@ -33,14 +33,11 @@ The tools require full ROS installation. The installation assumes you have Ubunt
    It will read rgb and ground-truth images from /rgb and gt/ folders in .../Object-RPE/data
    then save results (mask and accuracy.txt file) into .../Object-RPE/data/mask
 
-   <img src="figs/ex_rgb.png" width="290" /><img src="figs/ex_mask.png" width="290" />
-
 3. To test 3D mapping module:
    ```bash
    $ cd ~/catkin_ws/src/Object-RPE/obj_pose_est/mapping/app
    $ ./obj_pose_est/mapping/app/build/mapping -l data/ 100
    ```
-   <img src="figs/mapping.png" width="350" />
 
 4. To test pose estimation module ([Video](https://www.youtube.com/watch?v=1CSoOjFgP-I)): 
    ```bash
@@ -54,7 +51,6 @@ The tools require full ROS installation. The installation assumes you have Ubunt
    ```bash
    $ roslaunch obj_pose_est launch_object_rpe.launch
    ```
-   <img src="figs/rviz.png" width="600" />
 
 ## How to operate the system?
 
